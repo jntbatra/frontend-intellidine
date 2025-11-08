@@ -12,7 +12,6 @@ import {
   History,
   Menu as MenuIcon,
   Home,
-  X,
 } from "lucide-react";
 
 interface NavigationProps {
@@ -173,14 +172,6 @@ export function Navigation({ cartItemCount = 0 }: NavigationProps) {
                         {tenantName}
                       </span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="p-2"
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
                   </div>
                 </div>
                 <div className="p-4 space-y-2">
