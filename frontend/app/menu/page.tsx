@@ -312,23 +312,25 @@ export default function MenuPage() {
             onValueChange={setSelectedCategory}
             className="mb-6"
           >
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6 bg-white border border-orange-200 shadow-sm p-1">
-              <TabsTrigger
-                value="all"
-                className="text-sm font-medium data-[state=active]:bg-orange-500 data-[state=active]:text-white"
-              >
-                All
-              </TabsTrigger>
-              {menuData.categories.slice(0, 5).map((category) => (
+            <div className="overflow-x-auto">
+              <TabsList className="inline-flex w-max bg-white border border-orange-200 shadow-sm p-1">
                 <TabsTrigger
-                  key={category.id}
-                  value={category.id}
-                  className="text-sm font-medium data-[state=active]:bg-orange-500 data-[state=active]:text-white"
+                  value="all"
+                  className="text-sm font-medium data-[state=active]:bg-orange-500 data-[state=active]:text-white whitespace-nowrap"
                 >
-                  {category.name}
+                  All
                 </TabsTrigger>
-              ))}
-            </TabsList>
+                {menuData.categories.slice(0, 5).map((category) => (
+                  <TabsTrigger
+                    key={category.id}
+                    value={category.id}
+                    className="text-sm font-medium data-[state=active]:bg-orange-500 data-[state=active]:text-white whitespace-nowrap"
+                  >
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
           </Tabs>
         )}
 
