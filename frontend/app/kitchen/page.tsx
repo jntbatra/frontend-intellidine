@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useOrderRefresh } from "@/hooks/use-order-refresh";
 import {
   ChefHat,
   Clock,
@@ -150,14 +151,8 @@ export default function KitchenDashboard() {
     }
   }, []);
 
-  // Initial load and periodic refresh
-  useEffect(() => {
-    fetchOrders();
-
-    // Refresh orders every 30 seconds
-    const refreshInterval = setInterval(fetchOrders, 30000);
-    return () => clearInterval(refreshInterval);
-  }, [fetchOrders]);
+  // Use the order refresh hook with 12 second interval
+  useOrderRefresh(fetchOrders, { refreshInterval: 12000 });
 
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: Order["status"]) => {
