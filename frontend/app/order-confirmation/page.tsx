@@ -48,6 +48,17 @@ export default function OrderConfirmationPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Authentication check
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    const role = localStorage.getItem("staff_role");
+
+    if (!token || role === "kitchen") {
+      router.push("/");
+      return;
+    }
+  }, [router]);
+
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (!orderId || !tenantId) {

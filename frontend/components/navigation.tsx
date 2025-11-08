@@ -12,6 +12,7 @@ import {
   History,
   Menu as MenuIcon,
   Home,
+  LogOut,
 } from "lucide-react";
 
 interface NavigationProps {
@@ -25,6 +26,7 @@ export function Navigation({ cartItemCount = 0 }: NavigationProps) {
   const tenantId = searchParams.get("tenant_id");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tenantName, setTenantName] = useState("Restaurant");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Fetch tenant information
   useEffect(() => {
@@ -56,6 +58,23 @@ export function Navigation({ cartItemCount = 0 }: NavigationProps) {
 
     fetchTenantInfo();
   }, [tenantId]);
+
+  // Check authentication status
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    const role = localStorage.getItem("staff_role");
+    setIsAuthenticated(!!token && role !== "kitchen"); // Kitchen staff have different access
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("staff_role");
+    localStorage.removeItem("current_tenant_id");
+    localStorage.removeItem("customer_id");
+    setIsAuthenticated(false);
+    // Redirect to home page
+    window.location.href = "/";
+  };
 
   const navItems = [
     {
@@ -151,6 +170,16 @@ export function Navigation({ cartItemCount = 0 }: NavigationProps) {
             {navItems.map((item) => (
               <NavLink key={item.href} item={item} />
             ))}
+            {isAuthenticated && (
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                className="flex items-center space-x-2 px-4 py-3 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Logout</span>
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu */}
@@ -178,6 +207,19 @@ export function Navigation({ cartItemCount = 0 }: NavigationProps) {
                   {navItems.map((item) => (
                     <NavLink key={item.href} item={item} mobile />
                   ))}
+                  {isAuthenticated && (
+                    <Button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      variant="ghost"
+                      className="w-full justify-start px-4 py-3 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg mb-2"
+                    >
+                      <LogOut className="h-5 w-5 mr-3" />
+                      <span>Logout</span>
+                    </Button>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

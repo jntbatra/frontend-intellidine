@@ -85,7 +85,7 @@ export default function KitchenDashboard() {
   useEffect(() => {
     // Set test token for development
     const testToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjIiLCJ0eXBlIjoic3RhZmYiLCJpYXQiOjE3NjI1MTEyNzIsImV4cCI6MTc2MjU5NzY3Mn0.sih0pZ9B704cgXHbQ-yGNVd_IXeh9hJpmTIEx7n6xSM";
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjIiLCJ0eXBlIjoic3RhZmYiLCJpYXQiOjE3NjI2MDUzNzEsImV4cCI6MTc2MjY5MTc3MX0.rOEdNaFWkuhWvnlhHxeKck1t31itdgWkQ03chvrkVjs";
     const testRole = "kitchen";
     const testTenantId = "11111111-1111-1111-1111-111111111111";
 

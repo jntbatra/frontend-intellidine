@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,7 @@ interface CartItem {
 
 export default function MenuPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const tableId = searchParams.get("table_id");
   const tenantId = searchParams.get("tenant_id");
 
@@ -65,20 +66,16 @@ export default function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [tenantName, setTenantName] = useState("Restaurant");
 
-  // Set test token for development
+  // Authentication check
   useEffect(() => {
-    const testToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjIiLCJ0eXBlIjoic3RhZmYiLCJpYXQiOjE3NjI1MTEyNzIsImV4cCI6MTc2MjU5NzY3Mn0.sih0pZ9B704cgXHbQ-yGNVd_IXeh9hJpmTIEx7n6xSM";
-    const testRole = "kitchen";
-    const testTenantId = "11111111-1111-1111-1111-111111111111";
+    const token = localStorage.getItem("auth_token");
+    const role = localStorage.getItem("staff_role");
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem("auth_token", testToken);
-      localStorage.setItem("staff_role", testRole);
-      localStorage.setItem("current_tenant_id", testTenantId);
-      console.log("Test token, role, and tenant ID set for development");
+    if (!token || role === "kitchen") {
+      router.push("/");
+      return;
     }
-  }, []);
+  }, [router]);
 
   // Fetch tenant information
   useEffect(() => {

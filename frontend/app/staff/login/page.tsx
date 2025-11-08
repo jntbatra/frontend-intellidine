@@ -27,15 +27,6 @@ export default function StaffLoginPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const resp = await apiClient.post("/api/auth/staff/login", {
-        username: username.trim(),
-        password,
-      });
-
-      if (!resp.success) {
-        throw new Error(resp.message || "Login failed");
-      }
-
       type StaffLoginResp = {
         access_token?: string;
         token?: string;
@@ -43,7 +34,24 @@ export default function StaffLoginPage() {
         tenant_id?: string;
         user?: { role?: string; tenant_id?: string };
       };
-      const data = resp.data as unknown as StaffLoginResp;
+
+      const resp = await apiClient.post("/api/auth/staff/login", {
+        username: username.trim(),
+        password,
+      });
+
+      // Handle different response formats
+      let data: StaffLoginResp;
+      if (resp.success && resp.data) {
+        // Standard API response format
+        data = resp.data as StaffLoginResp;
+      } else if (resp.data && typeof resp.data === 'object') {
+        // Direct data response format
+        data = resp.data as StaffLoginResp;
+      } else {
+        throw new Error("Invalid response format");
+      }
+
       const token = data?.access_token || data?.token;
       const role = data?.role || data?.user?.role || "STAFF";
       const tenantId = data?.tenant_id || data?.user?.tenant_id;

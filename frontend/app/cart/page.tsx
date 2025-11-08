@@ -41,6 +41,17 @@ export default function CartPage() {
   const [discountCode, setDiscountCode] = useState("");
   const [isApplyingCode, setIsApplyingCode] = useState(false);
 
+  // Authentication check
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    const role = localStorage.getItem("staff_role");
+
+    if (!token || role === "kitchen") {
+      router.push("/");
+      return;
+    }
+  }, [router]);
+
   // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem(`cart_${tableId}_${tenantId}`);

@@ -116,6 +116,17 @@ export default function OrdersPage() {
   // Get current customer ID from localStorage or use default
   const [currentCustomerId, setCurrentCustomerId] = useState<string>("");
 
+  // Authentication check
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    const role = localStorage.getItem("staff_role");
+
+    if (!token || role === "kitchen") {
+      window.location.href = "/";
+      return;
+    }
+  }, []);
+
   useEffect(() => {
     // Get customer ID from localStorage or generate one
     let customerId = localStorage.getItem("customer_id");
