@@ -45,7 +45,7 @@ export default function StaffLoginPage() {
       if (resp.success && resp.data) {
         // Standard API response format
         data = resp.data as StaffLoginResp;
-      } else if (resp.data && typeof resp.data === 'object') {
+      } else if (resp.data && typeof resp.data === "object") {
         // Direct data response format
         data = resp.data as StaffLoginResp;
       } else {

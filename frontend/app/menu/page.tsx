@@ -10,13 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ChefHat,
   Search,
   Plus,
   Minus,
   ShoppingCart,
   Clock,
   AlertCircle,
+  ChefHat,
 } from "lucide-react";
 import Image from "next/image";
 import { Navigation } from "@/components/navigation";
@@ -64,7 +64,6 @@ export default function MenuPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [tenantName, setTenantName] = useState("Restaurant");
 
   // Authentication check
   useEffect(() => {
@@ -76,31 +75,6 @@ export default function MenuPage() {
       return;
     }
   }, [router]);
-
-  // Fetch tenant information
-  useEffect(() => {
-    if (tenantId) {
-      const fetchTenantInfo = async () => {
-        try {
-          const response = await apiClient.get(`/api/tenants/${tenantId}`);
-
-          if (response.success && response.data) {
-            const tenantData =
-              response.data &&
-              typeof response.data === "object" &&
-              "data" in response.data
-                ? (response.data as { data: { name?: string } }).data
-                : (response.data as { name?: string });
-            setTenantName(tenantData.name || "Restaurant");
-          }
-        } catch (error) {
-          console.error("Failed to fetch tenant info:", error);
-        }
-      };
-
-      fetchTenantInfo();
-    }
-  }, [tenantId]);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -186,7 +160,7 @@ export default function MenuPage() {
     setCart((prev) =>
       prev
         .map((item) =>
-          item.menu_item_id === itemId && item.quantity > 1
+          item.menu_item_id === itemId
             ? { ...item, quantity: item.quantity - 1 }
             : item
         )
@@ -262,33 +236,10 @@ export default function MenuPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-linear-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center shadow-lg">
-              <ChefHat className="h-7 w-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {tenantName} Menu
-              </h1>
-              <p className="text-sm text-gray-600">
-                Table {tableId.replace("tbl-", "")} • Fresh & Delicious
-              </p>
-            </div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Table {tableId.replace("tbl-", "")}
+            </h1>
           </div>
-
-          {/* Cart Button */}
-          <Button
-            variant="outline"
-            className="relative bg-white border-orange-200 hover:bg-orange-50 shadow-md"
-            disabled={cart.length === 0}
-          >
-            <ShoppingCart className="h-5 w-5 mr-2" />
-            Cart
-            {getTotalItems() > 0 && (
-              <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs shadow-lg">
-                {getTotalItems()}
-              </Badge>
-            )}
-          </Button>
         </div>
 
         {/* Search */}
@@ -471,7 +422,7 @@ export default function MenuPage() {
 
         {/* Floating Cart Summary */}
         {cart.length > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-orange-200 p-4 shadow-2xl">
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-orange-200 p-4 pb-10 shadow-2xl">
             <div className="container mx-auto max-w-4xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
