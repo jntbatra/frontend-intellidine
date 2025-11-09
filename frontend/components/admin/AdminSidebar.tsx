@@ -8,7 +8,6 @@ import {
   UtensilsCrossed,
   Package,
   BarChart3,
-  AlertCircle,
   Tag,
   ClipboardList,
 } from "lucide-react";
@@ -21,7 +20,6 @@ const navItems = [
   { href: "/admin/orders", icon: ClipboardList, label: "Orders", exact: false },
   { href: "/admin/inventory", icon: Package, label: "Inventory", exact: false },
   { href: "/admin/analytics", icon: BarChart3, label: "Analytics", exact: false },
-  { href: "/admin/alerts", icon: AlertCircle, label: "Alerts", exact: false },
   { href: "/admin/discounts", icon: Tag, label: "Discounts", exact: false },
 ];
 
