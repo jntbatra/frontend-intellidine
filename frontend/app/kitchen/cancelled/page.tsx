@@ -1,63 +1,29 @@
 ﻿"use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useOrderRefresh } from "@/hooks/use-order-refresh";
-import { ArrowLeft, AlertCircle, RefreshCw } from "lucide-react";
-
-interface OrderItem {
-  id: string;
-  order_id: string;
-  menu_item_id: string;
-  name?: string;
-  item_name?: string;
-  quantity: number;
-  price_at_order?: number;
-  unit_price?: string;
-  subtotal?: number;
-  special_instructions?: string;
-  special_requests?: string;
-  created_at: string;
-}
-
-interface Order {
-  id: string;
-  order_number: string;
-  table_id: string;
-  tenant_id: string;
-  items?: OrderItem[];
-  status:
-    | "pending"
-    | "preparing"
-    | "ready"
-    | "served"
-    | "completed"
-    | "in_preparation"
-    | "cancelled"
-    | "CANCELLED"
-    | "PENDING"
-    | "PREPARING"
-    | "READY"
-    | "SERVED"
-    | "COMPLETED";
-  total_amount?: number;
-  total?: number;
-  subtotal?: number;
-  tax_amount?: number;
-  created_at: string;
-  updated_at: string;
-  special_instructions?: string;
-}
+import { useCancelledOrders } from "@/hooks/use-cancelled-orders";
+import { ArrowLeft, AlertCircle, RefreshCw, Pause, Play } from "lucide-react";
+import { useEffect } from "react";
 
 export default function KitchenCancelledPage() {
   const router = useRouter();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    orders,
+    isLoading,
+    isError,
+    error,
+    autoRefresh,
+    toggleAutoRefresh,
+    manualRefresh,
+  } = useCancelledOrders(
+    localStorage.getItem("current_tenant_id") ||
+      "11111111-1111-1111-1111-111111111111"
+  );
 
+  // Check authentication
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
     const role = localStorage.getItem("staff_role");
@@ -69,60 +35,33 @@ export default function KitchenCancelledPage() {
     }
   }, [router]);
 
-  const fetchOrders = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const tenantId =
-        localStorage.getItem("current_tenant_id") ||
-        "11111111-1111-1111-1111-111111111111";
-
-      // Try fetching with cancelled status filter first
-      const response = await apiClient.get(`/api/orders`, {
-        limit: "100",
-        offset: "0",
-        tenant_id: tenantId,
-        status: "CANCELLED",
-        include_items: "true",
-      });
-
-      let allOrders: Order[] = [];
-      if (response?.data && Array.isArray(response.data)) {
-        allOrders = response.data;
-      } else if (response?.data && typeof response.data === "object") {
-        const data = response.data as Record<string, unknown>;
-        if (Array.isArray(data.data)) {
-          allOrders = data.data as Order[];
-        }
-      }
-
-      // Filter by cancelled status as fallback
-      const cancelledOrders = allOrders.filter(
-        (o) => o.status === "cancelled" || o.status === "CANCELLED"
-      );
-
-      console.log("📦 Fetched orders:", allOrders.length);
-      console.log("🗑️ Cancelled orders:", cancelledOrders.length);
-      console.log("Sample order status:", allOrders[0]?.status);
-
-      setOrders(cancelledOrders);
-    } catch (error) {
-      console.error("Error fetching cancelled orders:", error);
-      setOrders([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
-
-  useOrderRefresh(fetchOrders, { refreshInterval: 5000 });
-
   const getTableNumber = (tableId: string): string => {
     const match = tableId.match(/\d+$/);
     return match ? match[0] : tableId;
   };
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
+          <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-red-900 mb-2">Error</h2>
+          <p className="text-red-700 mb-6">
+            {error instanceof Error
+              ? error.message
+              : "Failed to load cancelled orders"}
+          </p>
+          <Button
+            onClick={manualRefresh}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -136,7 +75,7 @@ export default function KitchenCancelledPage() {
           </div>
           <div className="flex gap-2">
             <Button
-              onClick={fetchOrders}
+              onClick={manualRefresh}
               disabled={isLoading}
               variant="outline"
               className="gap-2"
@@ -145,6 +84,23 @@ export default function KitchenCancelledPage() {
                 className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
               />
               Refresh
+            </Button>
+            <Button
+              onClick={toggleAutoRefresh}
+              variant={autoRefresh ? "default" : "outline"}
+              className="gap-2"
+            >
+              {autoRefresh ? (
+                <>
+                  <Pause className="w-4 h-4" />
+                  Auto-refresh: ON
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  Auto-refresh: OFF
+                </>
+              )}
             </Button>
             <Button
               onClick={() => router.push("/kitchen")}
