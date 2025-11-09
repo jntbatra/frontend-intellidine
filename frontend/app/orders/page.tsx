@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +112,7 @@ const formatDate = (dateString: string) => {
 };
 
 export default function OrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -373,6 +375,30 @@ export default function OrdersPage() {
               <p className="text-lg text-gray-600">
                 View your previous orders from Intellidine
               </p>
+              {/* Tab Navigation */}
+              <div className="flex gap-2 mt-3">
+                <Button
+                  onClick={() => router.push("/orders")}
+                  variant="ghost"
+                  className="rounded-none border-b-2 border-blue-500 font-bold text-blue-600 px-3"
+                >
+                  📋 All Orders
+                </Button>
+                <Button
+                  onClick={() => router.push("/server/cancelled")}
+                  variant="ghost"
+                  className="rounded-none border-b-2 border-transparent hover:border-gray-300 px-3"
+                >
+                  ❌ Cancelled
+                </Button>
+                <Button
+                  onClick={() => router.push("/server/completed")}
+                  variant="ghost"
+                  className="rounded-none border-b-2 border-transparent hover:border-gray-300 px-3"
+                >
+                  ✅ Completed
+                </Button>
+              </div>
             </div>
           </div>
 

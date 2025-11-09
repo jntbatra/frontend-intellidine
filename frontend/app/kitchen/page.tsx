@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -508,6 +508,31 @@ export default function KitchenDashboard() {
                 <p className="text-sm text-gray-600">New Orders</p>
               </div>
             </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex gap-2 mt-4 border-b border-gray-200">
+            <Button
+              onClick={() => router.push("/kitchen")}
+              variant="ghost"
+              className="rounded-none border-b-2 border-orange-500 font-bold text-orange-600"
+            >
+              🍳 Active Orders
+            </Button>
+            <Button
+              onClick={() => router.push("/kitchen/cancelled")}
+              variant="ghost"
+              className="rounded-none border-b-2 border-transparent hover:border-gray-300"
+            >
+              ❌ Cancelled ({previousOrders.filter((o) => o.status === "cancelled").length})
+            </Button>
+            <Button
+              onClick={() => router.push("/kitchen/completed")}
+              variant="ghost"
+              className="rounded-none border-b-2 border-transparent hover:border-gray-300"
+            >
+              ✅ Completed ({previousOrders.filter((o) => o.status === "completed").length})
+            </Button>
           </div>
         </div>
       </div>
