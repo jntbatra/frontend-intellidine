@@ -55,7 +55,7 @@ export default function DiscountsPage() {
           </p>
         </div>
         <Link href="/admin/discounts/new">
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold">
             ➕ Create Discount
           </Button>
         </Link>

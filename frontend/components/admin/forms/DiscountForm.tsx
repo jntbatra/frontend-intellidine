@@ -324,7 +324,7 @@ export function DiscountForm({
         <Button variant="outline" type="button" disabled={isLoading}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading} className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold">
           {isLoading ? (
             <>
               <div className="animate-spin mr-2">⏳</div>
