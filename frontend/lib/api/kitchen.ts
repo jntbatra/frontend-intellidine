@@ -2,6 +2,17 @@ import { apiClient, ApiResponse } from "./client";
 import type { Order, OrderStatus } from "./admin/orders";
 import { MOCK_ORDERS } from "@/lib/constants/mockOrders";
 
+// Raw API response structure from backend - order items
+interface RawOrderItem {
+  id: string;
+  menu_item_id: string;
+  menu_item_name: string;
+  quantity: number;
+  unit_price: string;
+  subtotal: string;
+  special_requests: string | null;
+}
+
 // Raw API response structure from backend
 interface RawOrderResponse {
   id: string;
@@ -17,7 +28,7 @@ interface RawOrderResponse {
   total: number;
   created_at: string;
   estimated_ready_at: string;
-  items_count: number;
+  items: RawOrderItem[];
 }
 
 /**
@@ -112,24 +123,52 @@ export async function fetchKitchenOrders(
       throw new Error(`Invalid API response: no data returned from server`);
     }
 
+    // Log raw response structure for debugging
+    console.log("📋 Raw response data structure:", JSON.stringify(responseData, null, 2));
+
     // Helper function to map API response to Order type
-    const mapRawOrderToOrder = (rawOrder: RawOrderResponse): Order => ({
-      id: rawOrder.id,
-      tenant_id: rawOrder.tenant_id,
-      table_id: rawOrder.table_id,
-      customer_name: `Table ${rawOrder.table_id}`,
-      order_number: rawOrder.order_number,
-      items: [],
-      subtotal: rawOrder.subtotal,
-      tax: rawOrder.tax_amount,
-      total_amount: rawOrder.total,
-      status: mapBackendStatusToFrontend(rawOrder.status),
-      payment_method: "cash",
-      notes: undefined,
-      created_at: rawOrder.created_at,
-      completed_at: null,
-      updated_at: rawOrder.created_at,
-    });
+    const mapRawOrderToOrder = (rawOrder: RawOrderResponse): Order => {
+      console.log(`🔍 Mapping order #${rawOrder.order_number}`);
+      console.log(`   Raw items field type: ${typeof rawOrder.items}`);
+      console.log(`   Raw items:`, rawOrder.items);
+      
+      // Map raw order items to OrderItem format
+      const items = (rawOrder.items && Array.isArray(rawOrder.items) ? rawOrder.items : []).map((rawItem: RawOrderItem) => {
+        const mappedItem = {
+          id: rawItem.id,
+          name: rawItem.menu_item_name,
+          quantity: rawItem.quantity,
+          price: parseFloat(String(rawItem.unit_price)),
+          total: parseFloat(String(rawItem.subtotal)),
+          special_instructions: rawItem.special_requests || undefined,
+        };
+        console.log(`   ✓ Mapped item: ${mappedItem.name} x${mappedItem.quantity} @ ₹${mappedItem.price}`);
+        return mappedItem;
+      });
+
+      console.log(`📦 Order #${rawOrder.order_number} has ${items.length} items total`);
+      if (items.length === 0) {
+        console.warn(`⚠️  Warning: Order #${rawOrder.order_number} has no items!`);
+      }
+
+      return {
+        id: rawOrder.id,
+        tenant_id: rawOrder.tenant_id,
+        table_id: rawOrder.table_id,
+        customer_name: `Table ${rawOrder.table_id}`,
+        order_number: rawOrder.order_number,
+        items,
+        subtotal: rawOrder.subtotal,
+        tax: rawOrder.tax_amount,
+        total_amount: rawOrder.total,
+        status: mapBackendStatusToFrontend(rawOrder.status),
+        payment_method: "cash",
+        notes: undefined,
+        created_at: rawOrder.created_at,
+        completed_at: null,
+        updated_at: rawOrder.created_at,
+      };
+    };
 
     // Handle response with data array at top level: { data: [...], total, page, limit }
     if (
@@ -140,6 +179,9 @@ export async function fetchKitchenOrders(
     ) {
       // Map API response to Order type, normalizing status to lowercase
       const rawOrders = responseData.data as RawOrderResponse[];
+      console.log(`📋 Found ${rawOrders.length} raw orders in .data array`);
+      console.log("   First raw order:", JSON.stringify(rawOrders[0], null, 2));
+      
       orders = rawOrders.map(mapRawOrderToOrder);
       console.log(
         `📦 Received ${orders.length} orders from API (paginated structure)`
@@ -151,6 +193,9 @@ export async function fetchKitchenOrders(
     // Handle direct array response
     if (Array.isArray(responseData)) {
       const rawOrders = responseData as RawOrderResponse[];
+      console.log(`📋 Found ${rawOrders.length} raw orders in direct array`);
+      console.log("   First raw order:", JSON.stringify(rawOrders[0], null, 2));
+      
       orders = rawOrders.map(mapRawOrderToOrder);
       console.log(
         `📦 Received ${orders.length} orders from API (direct array)`
@@ -161,6 +206,9 @@ export async function fetchKitchenOrders(
     // Handle orders property
     if (responseData.orders && Array.isArray(responseData.orders)) {
       const rawOrders = responseData.orders as RawOrderResponse[];
+      console.log(`📋 Found ${rawOrders.length} raw orders in .orders property`);
+      console.log("   First raw order:", JSON.stringify(rawOrders[0], null, 2));
+      
       orders = rawOrders.map(mapRawOrderToOrder);
       console.log(
         `📦 Received ${orders.length} orders from API (orders property)`

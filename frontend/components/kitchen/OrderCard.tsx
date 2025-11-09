@@ -122,25 +122,29 @@ export function OrderCard({
       {/* Items List */}
       <div className="mb-4 bg-gray-50 rounded p-3 border border-gray-200">
         <h4 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
-          Items
+          Items ({order.items?.length || 0})
         </h4>
-        <ul className="space-y-1">
-          {order.items.map((item) => (
-            <li
-              key={item.id}
-              className="text-sm text-gray-800 flex justify-between"
-            >
-              <span>
-                {item.name} <span className="font-bold">×{item.quantity}</span>
-              </span>
-              {item.special_instructions && (
-                <span className="text-xs italic text-gray-500 ml-2">
-                  ({item.special_instructions})
+        {order.items && order.items.length > 0 ? (
+          <ul className="space-y-1">
+            {order.items.map((item) => (
+              <li
+                key={item.id}
+                className="text-sm text-gray-800 flex justify-between"
+              >
+                <span>
+                  {item.name} <span className="font-bold">×{item.quantity}</span>
                 </span>
-              )}
-            </li>
-          ))}
-        </ul>
+                {item.special_instructions && (
+                  <span className="text-xs italic text-gray-500 ml-2">
+                    ({item.special_instructions})
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-gray-500 italic">No items in order</p>
+        )}
       </div>
 
       {/* Price Information */}
