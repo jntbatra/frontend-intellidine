@@ -132,7 +132,8 @@ export function OrderCard({
                 className="text-sm text-gray-800 flex justify-between"
               >
                 <span>
-                  {item.name} <span className="font-bold">×{item.quantity}</span>
+                  {item.name}{" "}
+                  <span className="font-bold">×{item.quantity}</span>
                 </span>
                 {item.special_instructions && (
                   <span className="text-xs italic text-gray-500 ml-2">

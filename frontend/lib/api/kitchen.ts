@@ -94,6 +94,7 @@ export async function fetchKitchenOrders(
     tenant_id,
     limit: String(limit),
     offset: String(offset),
+    include_items: "true", // Ensure API returns items with each order
   });
 
   // Optional status filter for specific order statuses
@@ -124,16 +125,21 @@ export async function fetchKitchenOrders(
     }
 
     // Log raw response structure for debugging
-    console.log("📋 Raw response data structure:", JSON.stringify(responseData, null, 2));
+    console.log(
+      "📋 Raw response data structure:",
+      JSON.stringify(responseData, null, 2)
+    );
 
     // Helper function to map API response to Order type
     const mapRawOrderToOrder = (rawOrder: RawOrderResponse): Order => {
       console.log(`🔍 Mapping order #${rawOrder.order_number}`);
       console.log(`   Raw items field type: ${typeof rawOrder.items}`);
       console.log(`   Raw items:`, rawOrder.items);
-      
+
       // Map raw order items to OrderItem format
-      const items = (rawOrder.items && Array.isArray(rawOrder.items) ? rawOrder.items : []).map((rawItem: RawOrderItem) => {
+      const items = (
+        rawOrder.items && Array.isArray(rawOrder.items) ? rawOrder.items : []
+      ).map((rawItem: RawOrderItem) => {
         const mappedItem = {
           id: rawItem.id,
           name: rawItem.menu_item_name,
@@ -142,13 +148,19 @@ export async function fetchKitchenOrders(
           total: parseFloat(String(rawItem.subtotal)),
           special_instructions: rawItem.special_requests || undefined,
         };
-        console.log(`   ✓ Mapped item: ${mappedItem.name} x${mappedItem.quantity} @ ₹${mappedItem.price}`);
+        console.log(
+          `   ✓ Mapped item: ${mappedItem.name} x${mappedItem.quantity} @ ₹${mappedItem.price}`
+        );
         return mappedItem;
       });
 
-      console.log(`📦 Order #${rawOrder.order_number} has ${items.length} items total`);
+      console.log(
+        `📦 Order #${rawOrder.order_number} has ${items.length} items total`
+      );
       if (items.length === 0) {
-        console.warn(`⚠️  Warning: Order #${rawOrder.order_number} has no items!`);
+        console.warn(
+          `⚠️  Warning: Order #${rawOrder.order_number} has no items!`
+        );
       }
 
       return {
@@ -181,7 +193,7 @@ export async function fetchKitchenOrders(
       const rawOrders = responseData.data as RawOrderResponse[];
       console.log(`📋 Found ${rawOrders.length} raw orders in .data array`);
       console.log("   First raw order:", JSON.stringify(rawOrders[0], null, 2));
-      
+
       orders = rawOrders.map(mapRawOrderToOrder);
       console.log(
         `📦 Received ${orders.length} orders from API (paginated structure)`
@@ -195,7 +207,7 @@ export async function fetchKitchenOrders(
       const rawOrders = responseData as RawOrderResponse[];
       console.log(`📋 Found ${rawOrders.length} raw orders in direct array`);
       console.log("   First raw order:", JSON.stringify(rawOrders[0], null, 2));
-      
+
       orders = rawOrders.map(mapRawOrderToOrder);
       console.log(
         `📦 Received ${orders.length} orders from API (direct array)`
@@ -206,9 +218,11 @@ export async function fetchKitchenOrders(
     // Handle orders property
     if (responseData.orders && Array.isArray(responseData.orders)) {
       const rawOrders = responseData.orders as RawOrderResponse[];
-      console.log(`📋 Found ${rawOrders.length} raw orders in .orders property`);
+      console.log(
+        `📋 Found ${rawOrders.length} raw orders in .orders property`
+      );
       console.log("   First raw order:", JSON.stringify(rawOrders[0], null, 2));
-      
+
       orders = rawOrders.map(mapRawOrderToOrder);
       console.log(
         `📦 Received ${orders.length} orders from API (orders property)`
