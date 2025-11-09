@@ -14,6 +14,7 @@ import {
   Home,
   LogOut,
 } from "lucide-react";
+import { useCurrentTenant } from "@/hooks/use-tenant-details";
 
 interface NavigationProps {
   cartItemCount?: number;
@@ -25,39 +26,13 @@ export function Navigation({ cartItemCount = 0 }: NavigationProps) {
   const tableId = searchParams.get("table_id");
   const tenantId = searchParams.get("tenant_id");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [tenantName, setTenantName] = useState("Restaurant");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Fetch tenant information
-  useEffect(() => {
-    const fetchTenantInfo = async () => {
-      if (!tenantId) return;
+  // Fetch tenant details using the hook
+  const { tenantData } = useCurrentTenant();
 
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/tenants/${tenantId}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...(localStorage.getItem("auth_token") && {
-                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-              }),
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setTenantName(data.data?.name || data.name || "Restaurant");
-        }
-      } catch (error) {
-        console.error("Failed to fetch tenant info:", error);
-        // Keep default name if fetch fails
-      }
-    };
-
-    fetchTenantInfo();
-  }, [tenantId]);
+  // Get tenant name with fallback
+  const tenantName = tenantData?.name || "Restaurant";
 
   // Check authentication status
   useEffect(() => {

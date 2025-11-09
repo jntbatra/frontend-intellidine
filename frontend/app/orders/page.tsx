@@ -38,7 +38,13 @@ interface Order {
   tenant_id: string;
   customer_id: string;
   items: OrderItem[];
-  status: "pending" | "preparing" | "ready" | "served" | "completed" | "cancelled";
+  status:
+    | "pending"
+    | "preparing"
+    | "ready"
+    | "served"
+    | "completed"
+    | "cancelled";
   total_amount: number;
   created_at: string;
   updated_at: string;
