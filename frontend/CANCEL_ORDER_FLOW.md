@@ -1,6 +1,7 @@
 # Cancel Order Flow Documentation
 
 ## Overview
+
 The cancel order feature is fully implemented to send only the cancellation reason to the API endpoint.
 
 ## API Request Format
@@ -21,18 +22,17 @@ The API endpoint automatically sets the order status to `cancelled` based on the
 ## Implementation Flow
 
 ### 1. **User Interface (OrderCard Component)**
+
 ```tsx
 // User enters cancellation reason in textarea
-<textarea
-  value={cancelReason}
-  placeholder="Enter reason (optional)"
-/>
+<textarea value={cancelReason} placeholder="Enter reason (optional)" />;
 
 // On confirm, calls the cancel handler with reason only
 onCancel?.(cancelReason || "No reason provided");
 ```
 
 ### 2. **OrderColumn Component**
+
 ```tsx
 // Passes cancel handler to OrderCard
 onCancel={(reason) => onCancelOrder?.(order.id, reason)}
@@ -42,6 +42,7 @@ onCancelOrder?.(order.id, reason)
 ```
 
 ### 3. **Board Component (KitchenOrderBoard or ServerOrderBoard)**
+
 ```tsx
 // Handler prepares the mutation call
 const handleCancelOrder = (orderId: string, reason: string) => {
@@ -52,10 +53,11 @@ const handleCancelOrder = (orderId: string, reason: string) => {
 <OrderColumn
   onCancelOrder={handleCancelOrder}
   // ... other props
-/>
+/>;
 ```
 
 ### 4. **Custom Hook (use-kitchen-orders.ts)**
+
 ```tsx
 // Mutation calls API with orderId and reason
 const cancelOrderMutation = useMutation({
@@ -66,7 +68,7 @@ const cancelOrderMutation = useMutation({
     orderId: string;
     reason: string;
   }) => cancelOrder(orderId, reason),
-  
+
   onSuccess: () => {
     ordersQuery.refetch();
     toast.success("Order cancelled");
@@ -75,6 +77,7 @@ const cancelOrderMutation = useMutation({
 ```
 
 ### 5. **API Call (lib/api/kitchen.ts)**
+
 ```tsx
 export async function cancelOrder(
   orderId: string,
@@ -83,7 +86,7 @@ export async function cancelOrder(
   try {
     const response = await apiClient.patch<Order>(
       `/api/orders/${orderId}/cancel`,
-      { reason }  // ← Only reason is sent!
+      { reason } // ← Only reason is sent!
     );
     return response;
   } catch (error) {
@@ -105,10 +108,12 @@ export async function cancelOrder(
 ## Cancelled Order Pages
 
 After cancellation, orders appear on:
+
 - **Kitchen**: `/kitchen/cancelled`
 - **Server**: `/server/cancelled`
 
 Both pages show cancelled orders with:
+
 - Order number and table
 - All items with quantities
 - Pricing breakdown
@@ -117,6 +122,7 @@ Both pages show cancelled orders with:
 ## User Workflow
 
 ### Kitchen Staff
+
 1. Click **"Cancel Order"** button on any order card
 2. Optional: Enter cancellation reason
 3. Click **"Confirm Cancel"** to submit
@@ -126,6 +132,7 @@ Both pages show cancelled orders with:
 7. Toast shows: "Order cancelled"
 
 ### Server Staff
+
 1. Same workflow from Server Display System
 2. Click **"Cancelled Orders"** button to view all cancelled orders
 
@@ -138,6 +145,7 @@ Both pages show cancelled orders with:
 ## Testing
 
 To test the flow:
+
 1. Navigate to `/kitchen` or `/server`
 2. Click any "Cancel Order" button
 3. Enter reason (e.g., "Out of stock")
@@ -149,6 +157,7 @@ To test the flow:
 ## API Endpoint Requirements
 
 The backend `/api/orders/{id}/cancel` endpoint should:
+
 - ✅ Accept `{ reason: string }` in request body
 - ✅ Automatically set `status` to `"cancelled"`
 - ✅ Store the cancellation reason

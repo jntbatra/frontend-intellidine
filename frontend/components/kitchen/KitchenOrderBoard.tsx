@@ -110,11 +110,7 @@ export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
             </Button>
 
             <Link href="/kitchen/cancelled">
-              <Button
-                variant="outline"
-                className="gap-2"
-                size="lg"
-              >
+              <Button variant="outline" className="gap-2" size="lg">
                 <XCircle className="w-4 h-4" />
                 Cancelled Orders
               </Button>

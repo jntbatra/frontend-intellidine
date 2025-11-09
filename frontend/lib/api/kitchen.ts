@@ -373,12 +373,12 @@ export async function cancelOrder(
   try {
     console.log(`🗑️ Cancelling order ${orderId}`);
     console.log(`📝 Reason: ${reason}`);
-    
+
     const response = await apiClient.patch<Order>(
       `/api/orders/${orderId}/cancel`,
       { reason }
     );
-    
+
     console.log(`✅ Order cancelled successfully:`, response);
     return response;
   } catch (error) {

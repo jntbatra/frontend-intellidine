@@ -5,6 +5,7 @@
 The API returns order status as **`CANCELLED`** (uppercase), but the cancelled pages were filtering for **`cancelled`** (lowercase).
 
 ### Debug Output Showed:
+
 ```
 📦 Fetched orders: 4
 🗑️ Cancelled orders: 0
@@ -12,6 +13,7 @@ Sample order status: CANCELLED
 ```
 
 This meant:
+
 - ✅ 4 orders were fetched
 - ❌ 0 were found with status "cancelled" (lowercase)
 - ✅ Actual status is "CANCELLED" (uppercase)
@@ -19,30 +21,43 @@ This meant:
 ## Solution Applied ✅
 
 ### 1. Updated Order Interface
+
 Both `/kitchen/cancelled/page.tsx` and `/server/cancelled/page.tsx` now accept both cases:
 
 ```typescript
-status: "pending" | "preparing" | "ready" | "served" | "completed" 
-       | "in_preparation" | "cancelled" 
-       | "CANCELLED" | "PENDING" | "PREPARING" | "READY" | "SERVED" | "COMPLETED"
+status: "pending" |
+  "preparing" |
+  "ready" |
+  "served" |
+  "completed" |
+  "in_preparation" |
+  "cancelled" |
+  "CANCELLED" |
+  "PENDING" |
+  "PREPARING" |
+  "READY" |
+  "SERVED" |
+  "COMPLETED";
 ```
 
 ### 2. Updated Filter Logic
+
 Changed from:
+
 ```typescript
 const cancelledOrders = allOrders.filter((o) => o.status === "cancelled");
 ```
 
 To:
+
 ```typescript
 const cancelledOrders = allOrders.filter(
-  (o) =>
-    o.status === "cancelled" ||
-    o.status === "CANCELLED"
+  (o) => o.status === "cancelled" || o.status === "CANCELLED"
 );
 ```
 
 ### 3. Added Debug Logging to Cancel API
+
 Added logging to `lib/api/kitchen.ts`:
 
 ```typescript
@@ -57,6 +72,7 @@ console.log(`✅ Order cancelled successfully:`, response);
 When you cancel an order from Kitchen or Server page:
 
 **Request:**
+
 ```http
 PATCH /api/orders/{orderId}/cancel
 Content-Type: application/json
@@ -67,6 +83,7 @@ Content-Type: application/json
 ```
 
 **Console Output:**
+
 ```
 🗑️ Cancelling order 3ef84b9e-3f89-460f-9ecb-bf22337ee395
 📝 Reason: Customer requested cancellation
@@ -76,6 +93,7 @@ Content-Type: application/json
 ## Expected Behavior Now ✅
 
 1. **Cancel Order:**
+
    - Click "Cancel Order" button on KDS/Server
    - Enter reason
    - Click "Confirm Cancel"
@@ -93,11 +111,13 @@ Content-Type: application/json
 ## Files Modified
 
 1. **`app/kitchen/cancelled/page.tsx`**
+
    - Updated Order interface to accept uppercase status
    - Updated filter to check both cases
    - Added debug logging
 
 2. **`app/server/cancelled/page.tsx`**
+
    - Updated Order interface to accept uppercase status
    - Updated filter to check both cases
    - Added debug logging
@@ -109,6 +129,7 @@ Content-Type: application/json
 ## How to Test
 
 ### Test 1: Cancel an Order
+
 1. Go to `/kitchen` or `/server`
 2. Click "Cancel Order" on any order
 3. Enter reason: "Testing"
@@ -119,6 +140,7 @@ Content-Type: application/json
    - Should see: `✅ Order cancelled successfully: {...}`
 
 ### Test 2: View Cancelled Orders
+
 1. Navigate to `/kitchen/cancelled` or `/server/cancelled`
 2. **Check Console:**
    - Should see: `📦 Fetched orders: 4`
@@ -152,11 +174,13 @@ Content-Type: application/json
 ## Quick Reference
 
 **Cancel Order Logs:**
+
 - 🗑️ = Order cancellation started
 - 📝 = Cancellation reason
 - ✅ = Cancellation successful
 
 **Cancelled Page Logs:**
+
 - 📦 = Total orders fetched
 - 🗑️ = Cancelled orders found
 - Sample status = Actual status value from API

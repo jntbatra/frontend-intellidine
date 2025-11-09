@@ -30,7 +30,20 @@ interface Order {
   table_id: string;
   tenant_id: string;
   items?: OrderItem[];
-  status: "pending" | "preparing" | "ready" | "served" | "completed" | "cancelled" | "in_preparation" | "CANCELLED" | "PENDING" | "PREPARING" | "READY" | "SERVED" | "COMPLETED";
+  status:
+    | "pending"
+    | "preparing"
+    | "ready"
+    | "served"
+    | "completed"
+    | "cancelled"
+    | "in_preparation"
+    | "CANCELLED"
+    | "PENDING"
+    | "PREPARING"
+    | "READY"
+    | "SERVED"
+    | "COMPLETED";
   total_amount?: number;
   total?: number;
   subtotal?: number;
@@ -48,7 +61,10 @@ export default function ServerCancelledPage() {
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
     const role = localStorage.getItem("staff_role");
-    if (!token || (role !== "server" && role !== "admin" && role !== "MANAGER")) {
+    if (
+      !token ||
+      (role !== "server" && role !== "admin" && role !== "MANAGER")
+    ) {
       router.push("/staff/login");
     }
   }, [router]);
@@ -56,7 +72,9 @@ export default function ServerCancelledPage() {
   const fetchOrders = useCallback(async () => {
     try {
       setIsLoading(true);
-      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+      const tenantId =
+        localStorage.getItem("current_tenant_id") ||
+        "11111111-1111-1111-1111-111111111111";
       const response = await apiClient.get(`/api/orders`, {
         limit: "100",
         offset: "0",
@@ -76,15 +94,13 @@ export default function ServerCancelledPage() {
       }
 
       const cancelledOrders = allOrders.filter(
-        (o) =>
-          o.status === "cancelled" ||
-          o.status === "CANCELLED"
+        (o) => o.status === "cancelled" || o.status === "CANCELLED"
       );
-      
+
       console.log("📦 Fetched orders:", allOrders.length);
       console.log("🗑️ Cancelled orders:", cancelledOrders.length);
       console.log("Sample order status:", allOrders[0]?.status);
-      
+
       setOrders(cancelledOrders);
     } catch (error) {
       console.error("Error fetching cancelled orders:", error);
@@ -110,7 +126,9 @@ export default function ServerCancelledPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">Cancelled Orders</h1>
+            <h1 className="text-4xl font-bold text-gray-900">
+              Cancelled Orders
+            </h1>
             <p className="text-gray-600 mt-1">View all cancelled orders</p>
           </div>
           <div className="flex gap-2">
@@ -120,7 +138,9 @@ export default function ServerCancelledPage() {
               variant="outline"
               className="gap-2"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
             <Button
@@ -151,7 +171,10 @@ export default function ServerCancelledPage() {
         ) : (
           <div className="grid gap-4">
             {orders.map((order) => (
-              <Card key={order.id} className="border-2 border-red-200 hover:shadow-lg transition-shadow">
+              <Card
+                key={order.id}
+                className="border-2 border-red-200 hover:shadow-lg transition-shadow"
+              >
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-3">
                     <div>
@@ -176,8 +199,13 @@ export default function ServerCancelledPage() {
                       <ul className="space-y-1">
                         {order.items.map((item) => (
                           <li key={item.id} className="text-sm text-gray-700">
-                            <span className="font-medium">{item.name || item.item_name || "Item"}</span>
-                            <span className="text-gray-600"> ×{item.quantity}</span>
+                            <span className="font-medium">
+                              {item.name || item.item_name || "Item"}
+                            </span>
+                            <span className="text-gray-600">
+                              {" "}
+                              ×{item.quantity}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -188,15 +216,21 @@ export default function ServerCancelledPage() {
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-gray-600">Subtotal:</span>
-                      <span className="font-medium">₹{(order.subtotal || 0).toFixed(2)}</span>
+                      <span className="font-medium">
+                        ₹{(order.subtotal || 0).toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-gray-600">Tax:</span>
-                      <span className="font-medium">₹{(order.tax_amount || 0).toFixed(2)}</span>
+                      <span className="font-medium">
+                        ₹{(order.tax_amount || 0).toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-200">
                       <span>Total:</span>
-                      <span className="text-red-600">₹{((order.total_amount || order.total) || 0).toFixed(2)}</span>
+                      <span className="text-red-600">
+                        ₹{(order.total_amount || order.total || 0).toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 </CardContent>
