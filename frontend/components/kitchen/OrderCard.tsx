@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Order } from "@/lib/api/admin/orders";
 import { getTimeElapsed, getTableNumber } from "@/hooks/use-kitchen-orders";
 import { Clock, Users, DollarSign } from "lucide-react";
+import { ItemCutter } from "./ItemCutter";
 
 interface OrderCardProps {
   order: Order;
@@ -119,34 +120,46 @@ export function OrderCard({
         <span>{timeElapsed}</span>
       </div>
 
-      {/* Items List */}
-      <div className="mb-4 bg-gray-50 rounded p-3 border border-gray-200">
-        <h4 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
-          Items ({order.items?.length || 0})
-        </h4>
-        {order.items && order.items.length > 0 ? (
-          <ul className="space-y-1">
-            {order.items.map((item) => (
-              <li
-                key={item.id}
-                className="text-sm text-gray-800 flex justify-between"
-              >
-                <span>
-                  {item.name}{" "}
-                  <span className="font-bold">×{item.quantity}</span>
-                </span>
-                {item.special_instructions && (
-                  <span className="text-xs italic text-gray-500 ml-2">
-                    ({item.special_instructions})
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-xs text-gray-500 italic">No items in order</p>
+      {/* Items List - Hide in preparing tab */}
+      {order.status !== "in_preparation" && (
+        <div className="mb-4 bg-gray-50 rounded p-3 border border-gray-200">
+          <h4 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
+            Items ({order.items?.length || 0})
+          </h4>
+          {order.items && order.items.length > 0 ? (
+            <ul className="space-y-2">
+              {order.items.map((item) => (
+                <li key={item.id} className="text-sm text-gray-800">
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-medium">
+                      {item.name}{" "}
+                      <span className="font-bold text-orange-600">
+                        ×{item.quantity}
+                      </span>
+                    </span>
+                  </div>
+                  {item.special_instructions && (
+                    <div className="text-xs text-orange-600 font-semibold mt-1 bg-orange-50 px-2 py-1 rounded border border-orange-200">
+                      📝 {item.special_instructions}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-gray-500 italic">No items in order</p>
+          )}
+        </div>
+      )}
+
+      {/* Item Cutter - Show only when in preparation */}
+      {order.status === "in_preparation" &&
+        order.items &&
+        order.items.length > 0 && (
+          <div className="mb-4">
+            <ItemCutter orderId={order.id} items={order.items} />
+          </div>
         )}
-      </div>
 
       {/* Price Information */}
       <div className="mb-4 border-t border-gray-200 pt-3">
