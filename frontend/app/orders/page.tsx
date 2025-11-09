@@ -37,7 +37,7 @@ interface Order {
   tenant_id: string;
   customer_id: string;
   items: OrderItem[];
-  status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+  status: "pending" | "preparing" | "ready" | "served" | "completed" | "cancelled";
   total_amount: number;
   created_at: string;
   updated_at: string;
@@ -53,6 +53,8 @@ const getStatusColor = (status: Order["status"]) => {
       return "bg-orange-500";
     case "ready":
       return "bg-green-500";
+    case "served":
+      return "bg-blue-500";
     case "completed":
       return "bg-blue-500";
     case "cancelled":
@@ -65,6 +67,8 @@ const getStatusColor = (status: Order["status"]) => {
 const getStatusIcon = (status: Order["status"]) => {
   switch (status) {
     case "completed":
+      return <CheckCircle className="h-4 w-4" />;
+    case "served":
       return <CheckCircle className="h-4 w-4" />;
     case "cancelled":
       return <XCircle className="h-4 w-4" />;

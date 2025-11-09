@@ -97,6 +97,10 @@ export default function OtpPage() {
     onSuccess: (data: any) => {
       if (data?.data?.access_token) {
         setAuthToken(data.data.access_token);
+        // Store customer ID for order creation
+        if (data?.data?.user?.id) {
+          localStorage.setItem("customer_id", data.data.user.id);
+        }
         // Navigate to menu
         router.push(`/menu?table_id=${tableId}&tenant_id=${tenantId}`);
       }

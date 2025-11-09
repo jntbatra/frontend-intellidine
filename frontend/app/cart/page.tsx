@@ -37,9 +37,7 @@ export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [discount, setDiscount] = useState({ amount: 0, reason: "", code: "" });
-  const [discountCode, setDiscountCode] = useState("");
-  const [isApplyingCode, setIsApplyingCode] = useState(false);
+  const [isLoadingCart, setIsLoadingCart] = useState(true);
 
   // Authentication check
   useEffect(() => {
@@ -62,6 +60,7 @@ export default function CartPage() {
         console.error("Failed to parse cart data:", error);
       }
     }
+    setIsLoadingCart(false);
   }, [tableId, tenantId]);
 
   // Save cart to localStorage whenever it changes
@@ -106,173 +105,57 @@ export default function CartPage() {
   );
   const getTax = () => Math.round(getSubtotal() * 0.18); // 18% GST
 
-  // Calculate discount using API
-  useEffect(() => {
-    const calculateDiscount = async () => {
-      if (cart.length === 0) {
-        setDiscount({ amount: 0, reason: "", code: "" });
-        return;
-      }
-
-      try {
-        const subtotal = getSubtotal();
-        const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-        // Get customer data from localStorage
-        const customerId = localStorage.getItem("customer_id") || "guest";
-        const hasOrderedBefore =
-          localStorage.getItem("has_ordered_before") === "true";
-        const customerOrderCount = hasOrderedBefore ? 1 : 0;
-
-        // Call discount prediction API
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/discounts/predict`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              order_id: `temp-${Date.now()}`,
-              total_amount: subtotal,
-              items_count: itemsCount,
-              customer_id: customerId,
-              day_of_week: new Date()
-                .toLocaleDateString("en-US", { weekday: "long" })
-                .toUpperCase(),
-              hour_of_day: new Date().getHours(),
-              customer_order_count: customerOrderCount,
-              customer_avg_spend: subtotal, // Simplified
-              customer_order_frequency_days: 7, // Simplified
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data) {
-            setDiscount({
-              amount: data.data.discount_amount,
-              reason:
-                data.data.reason ||
-                `ML predicted ${data.data.discount_percentage}% discount`,
-              code: "",
-            });
-          } else {
-            // No discount available
-            setDiscount({ amount: 0, reason: "", code: "" });
-          }
-        } else {
-          console.warn("Discount API failed:", response.status);
-          // No discount if API fails
-          setDiscount({ amount: 0, reason: "", code: "" });
-        }
-      } catch (error) {
-        console.error("Failed to calculate discount:", error);
-        // No discount on error
-        setDiscount({ amount: 0, reason: "", code: "" });
-      }
-    };
-
-    calculateDiscount();
-  }, [cart, getSubtotal]);
-
-  const applyDiscountCode = async () => {
-    if (!discountCode.trim()) return;
-
-    setIsApplyingCode(true);
-    try {
-      // Call discount code API
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/discounts/apply-code`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            code: discountCode.trim(),
-            order_total: getSubtotal(),
-            customer_id: localStorage.getItem("customer_id") || "guest",
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data?.applicable) {
-          setDiscount({
-            amount: data.data.discount_amount,
-            reason:
-              data.data.reason ||
-              `${data.data.discount_percentage}% discount code applied`,
-            code: discountCode.trim(),
-          });
-          setDiscountCode("");
-        } else {
-          alert(data.message || "Invalid or expired discount code");
-        }
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        alert(errorData.message || "Failed to apply discount code");
-      }
-    } catch (error) {
-      console.error("Failed to apply discount code:", error);
-      alert("Failed to apply discount code");
-    } finally {
-      setIsApplyingCode(false);
-    }
-  };
-
-  const getTotal = () => getSubtotal() + getTax() - discount.amount;
+  const getTotal = () => getSubtotal() + getTax();
 
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return;
 
     setIsPlacingOrder(true);
     try {
-      // Get customer ID from localStorage
-      let customerId = localStorage.getItem("customer_id");
-      if (!customerId) {
-        customerId = `cust-${Date.now()}-${Math.random()
-          .toString(36)
-          .substr(2, 9)}`;
-        localStorage.setItem("customer_id", customerId);
-      }
-
       // Prepare order data
+      const items = cart.map((item) => ({
+        menu_item_id: item.menu_item_id,
+        quantity: item.quantity,
+      }));
+
       const orderData = {
-        table_id: tableId,
-        customer_id: customerId,
-        items: cart.map((item) => ({
-          menu_item_id: item.menu_item_id,
-          quantity: item.quantity,
-          special_instructions: item.special_instructions || undefined,
-          price_at_order: item.price,
-        })),
-        special_instructions: specialInstructions || undefined,
+        table_id: tableId!.replace("tbl-", ""),
+        items,
+        payment_method: "RAZORPAY",
       };
 
-      // Make API call to create order
+            // Make API call to create order
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "X-Tenant-ID": tenantId || "",
+      };
+
+      const token = localStorage.getItem("auth_token");
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/orders?tenant_id=${tenantId}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Add authorization header if token exists
-            ...(localStorage.getItem("auth_token") && {
-              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-            }),
-          },
+          headers,
           body: JSON.stringify(orderData),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error("Order creation failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          requestData: orderData,
+          headers: { ...headers, Authorization: "[REDACTED]" },
+          apiUrl: process.env.NEXT_PUBLIC_API_URL
+        });
         throw new Error(
-          errorData.message || `Failed to create order: ${response.status}`
+          errorData.message || `Failed to create order: ${response.status} ${response.statusText}`
         );
       }
 
@@ -281,9 +164,6 @@ export default function CartPage() {
       // Clear cart after successful order
       setCart([]);
       localStorage.removeItem(`cart_${tableId}_${tenantId}`);
-
-      // Mark customer as having ordered before (for discount logic)
-      localStorage.setItem("has_ordered_before", "true");
 
       // Navigate to order confirmation with real order data
       router.push(
@@ -316,6 +196,28 @@ export default function CartPage() {
               </h2>
               <p className="text-gray-600">
                 Please scan a valid restaurant QR code to continue.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isLoadingCart) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-orange-50 via-red-50 to-yellow-50 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Loading Your Cart
+              </h2>
+              <p className="text-gray-600">
+                Please wait while we load your cart items...
               </p>
             </div>
           </CardContent>
@@ -406,6 +308,25 @@ export default function CartPage() {
       <Navigation
         cartItemCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
       />
+      {isLoadingCart && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                  <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
+                </div>
+                <h2 className="text-xl font-semibold text-white mb-2">
+                  Syncing Cart
+                </h2>
+                <p className="text-gray-200">
+                  Please wait while we sync your cart...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       <div className="container mx-auto px-4 py-4 max-w-4xl">
         {/* Mobile Header */}
         <div className="md:hidden mb-6">
@@ -552,12 +473,6 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span>₹{getSubtotal()}</span>
                 </div>
-                {discount.amount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600">
-                    <span>Discount ({discount.reason})</span>
-                    <span>-₹{discount.amount}</span>
-                  </div>
-                )}
                 <div className="flex justify-between text-sm">
                   <span>Tax (GST 18%)</span>
                   <span>₹{getTax()}</span>
@@ -567,45 +482,6 @@ export default function CartPage() {
                   <span>Total</span>
                   <span className="text-orange-600">₹{getTotal()}</span>
                 </div>
-                {discount.amount > 0 && (
-                  <div className="text-xs text-green-600 text-center bg-green-50 p-2 rounded">
-                    🎉 You saved ₹{discount.amount}!
-                  </div>
-                )}
-              </div>
-
-              {/* Discount Code */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Discount Code (Optional)
-                </label>
-                <div className="flex space-x-2">
-                  <Input
-                    placeholder="Enter discount code"
-                    value={discountCode}
-                    onChange={(e) =>
-                      setDiscountCode(e.target.value.toUpperCase())
-                    }
-                    className="flex-1 text-sm"
-                  />
-                  <Button
-                    onClick={applyDiscountCode}
-                    disabled={isApplyingCode || !discountCode.trim()}
-                    variant="outline"
-                    className="px-4 border-orange-200 hover:bg-orange-50"
-                  >
-                    {isApplyingCode ? (
-                      <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      "Apply"
-                    )}
-                  </Button>
-                </div>
-                {discount.code && (
-                  <p className="text-xs text-green-600 mt-1">
-                    Code &quot;{discount.code}&quot; applied successfully!
-                  </p>
-                )}
               </div>
 
               {/* Order Notes */}
@@ -749,12 +625,6 @@ export default function CartPage() {
                     <span>Subtotal</span>
                     <span>₹{getSubtotal()}</span>
                   </div>
-                  {discount.amount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount ({discount.reason})</span>
-                      <span>-₹{discount.amount}</span>
-                    </div>
-                  )}
                   <div className="flex justify-between">
                     <span>Tax (GST 18%)</span>
                     <span>₹{getTax()}</span>
@@ -764,45 +634,6 @@ export default function CartPage() {
                     <span>Total</span>
                     <span className="text-orange-600">₹{getTotal()}</span>
                   </div>
-                  {discount.amount > 0 && (
-                    <div className="text-xs text-green-600 text-center bg-green-50 p-2 rounded mt-2">
-                      🎉 You saved ₹{discount.amount}!
-                    </div>
-                  )}
-                </div>
-
-                {/* Discount Code */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Discount Code (Optional)
-                  </label>
-                  <div className="flex space-x-2">
-                    <Input
-                      placeholder="Enter discount code"
-                      value={discountCode}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setDiscountCode(e.target.value.toUpperCase())
-                      }
-                      className="flex-1"
-                    />
-                    <Button
-                      onClick={applyDiscountCode}
-                      disabled={isApplyingCode || !discountCode.trim()}
-                      variant="outline"
-                      className="px-4 border-orange-200 hover:bg-orange-50"
-                    >
-                      {isApplyingCode ? (
-                        <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        "Apply"
-                      )}
-                    </Button>
-                  </div>
-                  {discount.code && (
-                    <p className="text-xs text-green-600 mt-1">
-                      Code &quot;{discount.code}&quot; applied successfully!
-                    </p>
-                  )}
                 </div>
 
                 {/* Order Notes */}
