@@ -3,8 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 // API Configuration
 export const API_CONFIG = {
   BASE_URL:
-    process.env.NEXT_PUBLIC_API_URL ||
-    "https://intellidine-api.aahil-khan.tech",
+    process.env.NEXT_PUBLIC_API_URL || "",
   TIMEOUT: 10000,
 } as const;
 

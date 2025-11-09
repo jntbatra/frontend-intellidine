@@ -38,6 +38,7 @@ export default function StaffLoginPage() {
       const resp = await apiClient.post("/api/auth/staff/login", {
         username: username.trim(),
         password,
+        tenant_id: "11111111-1111-1111-1111-111111111111",
       });
 
       // Handle different response formats
@@ -62,12 +63,8 @@ export default function StaffLoginPage() {
         if (role) localStorage.setItem("staff_role", role);
         if (tenantId) localStorage.setItem("current_tenant_id", tenantId);
 
-        // Redirect based on role
-        if (role && role.toLowerCase().includes("manager")) {
-          router.push("/admin");
-        } else {
-          router.push(redirectTo || "/kitchen");
-        }
+        // Redirect to kitchen for all staff roles
+        router.push(redirectTo || "/kitchen");
       } else {
         throw new Error("No access token returned");
       }

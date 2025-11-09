@@ -24,11 +24,16 @@ import {
 } from "lucide-react";
 
 interface OrderItem {
+  id: string;
+  order_id: string;
   menu_item_id: string;
-  name: string;
+  name?: string; // Will be populated from menu service
   price: number;
   quantity: number;
   special_instructions?: string;
+  price_at_order: number;
+  subtotal: number;
+  created_at: string;
 }
 
 interface Order {
@@ -37,7 +42,7 @@ interface Order {
   table_id: string;
   tenant_id: string;
   items: OrderItem[];
-  status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+  status: "pending" | "preparing" | "ready" | "served" | "completed" | "cancelled";
   total_amount: number;
   created_at: string;
   updated_at: string;
@@ -78,28 +83,16 @@ export default function KitchenDashboard() {
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     orderId: string | null;
-    action: "complete" | "cancel" | null;
+    action: "serve" | "complete" | "cancel" | null;
     orderNumber: string;
   }>({ isOpen: false, orderId: null, action: null, orderNumber: "" });
 
   // Authentication check
   useEffect(() => {
-    // Set test token for development
-    const testToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjIiLCJ0eXBlIjoic3RhZmYiLCJpYXQiOjE3NjI2MDUzNzEsImV4cCI6MTc2MjY5MTc3MX0.rOEdNaFWkuhWvnlhHxeKck1t31itdgWkQ03chvrkVjs";
-    const testRole = "kitchen";
-    const testTenantId = "11111111-1111-1111-1111-111111111111";
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("auth_token", testToken);
-      localStorage.setItem("staff_role", testRole);
-      localStorage.setItem("current_tenant_id", testTenantId);
-    }
-
     const token = localStorage.getItem("auth_token");
     const role = localStorage.getItem("staff_role");
 
-    if (!token || role !== "kitchen") {
+    if (!token || (role !== "kitchen" && role !== "admin" && role !== "MANAGER")) {
       router.push("/staff/login");
       return;
     }
@@ -119,32 +112,115 @@ export default function KitchenDashboard() {
       setIsLoading(true);
       setError(null);
 
-      const tenantId = localStorage.getItem("current_tenant_id");
+      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
       const response = await apiClient.get(`/api/orders`, {
-        limit: "50",
+        limit: "10",
         offset: "0",
-        tenant_id: tenantId || "11111111-1111-1111-1111-111111111111",
+        tenant_id: tenantId,
       });
 
-      if (response && response.data && Array.isArray(response.data)) {
-        setOrders(response.data);
+      let ordersList: any[] = [];
+      if (Array.isArray(response)) {
+        ordersList = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        ordersList = response.data;
       } else if (
         response &&
         response.data &&
         typeof response.data === "object" &&
         "data" in response.data &&
-        Array.isArray((response.data as { data: Order[] }).data)
+        Array.isArray((response.data as { data: any[] }).data)
       ) {
-        // Handle nested data structure: {data: {data: [...]}, meta: {...}}
-        setOrders((response.data as { data: Order[] }).data);
+        ordersList = (response.data as { data: any[] }).data;
       } else {
         console.warn("Unexpected API response format:", response);
         setOrders([]);
+        return;
       }
+
+      // Fetch full details for each order to get items
+      const detailedOrders = await Promise.all(
+        ordersList.map(async (order) => {
+          try {
+            const detailResponse = await apiClient.get(`/api/orders/${order.id}`);
+            let fullOrder: any = {};
+            if (detailResponse && detailResponse.data) {
+              fullOrder = detailResponse.data;
+            } else if (detailResponse) {
+              fullOrder = detailResponse;
+            } else {
+              fullOrder = order; // fallback
+            }
+
+            // Extract items from the nested data structure
+            let orderItems = [];
+            if (fullOrder.items) {
+              orderItems = fullOrder.items;
+            } else if (fullOrder.data && fullOrder.data.items) {
+              orderItems = fullOrder.data.items;
+            }
+
+            // Get unique menu item IDs to fetch names
+            const menuItemIds = [...new Set(orderItems.map((item: any) => item.menu_item_id).filter(Boolean))];
+
+            // Fetch menu item details for names
+            const menuItemsMap: { [key: string]: string } = {};
+            await Promise.all(
+              menuItemIds.map(async (itemId) => {
+                const id = itemId as string;
+                try {
+                  const menuResponse = await apiClient.get(`/api/menu/items/${id}`);
+                  let menuItem: any = {};
+                  if (menuResponse && menuResponse.data) {
+                    menuItem = menuResponse.data;
+                  } else if (menuResponse) {
+                    menuItem = menuResponse;
+                  }
+                  menuItemsMap[id] = menuItem.name || id; // fallback to ID if name not found
+                } catch (err) {
+                  console.warn(`Failed to fetch menu item ${id}:`, err);
+                  menuItemsMap[id] = id; // fallback to ID
+                }
+              })
+            );
+
+            // Add names to items
+            const itemsWithNames = orderItems.map((item: any) => ({
+              ...item,
+              name: menuItemsMap[item.menu_item_id] || item.menu_item_id,
+              price: item.price_at_order || item.price || 0,
+            }));
+
+            return {
+              ...fullOrder,
+              status: (fullOrder.status || order.status || "pending").toLowerCase() as Order["status"],
+              items: itemsWithNames,
+              total_amount: fullOrder.total || fullOrder.total_amount || 0,
+              order_number: fullOrder.id || order.id,
+              table_id: fullOrder.table_id || order.table_id || "unknown",
+              created_at: fullOrder.created_at || order.created_at || new Date().toISOString(),
+              updated_at: fullOrder.updated_at || order.updated_at || new Date().toISOString(),
+            };
+          } catch (err) {
+            console.warn(`Failed to fetch details for order ${order.id}:`, err);
+            return {
+              ...order,
+              status: (order.status || "pending").toLowerCase() as Order["status"],
+              items: [],
+              total_amount: order.total || 0,
+              order_number: order.id,
+              table_id: order.table_id || "unknown",
+              created_at: order.created_at || new Date().toISOString(),
+              updated_at: order.updated_at || new Date().toISOString(),
+            };
+          }
+        })
+      );
+
+      setOrders(detailedOrders);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
       setError("Failed to load orders. Please refresh the page.");
-      // Keep existing orders if API fails, or set to empty array
       setOrders([]);
     } finally {
       setIsLoading(false);
@@ -156,6 +232,19 @@ export default function KitchenDashboard() {
 
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: Order["status"]) => {
+      if (newStatus === "served") {
+        const order = orders.find((o) => o.id === orderId);
+        if (order) {
+          setConfirmDialog({
+            isOpen: true,
+            orderId,
+            action: "serve",
+            orderNumber: order.order_number,
+          });
+          return;
+        }
+      }
+
       if (newStatus === "completed") {
         const order = orders.find((o) => o.id === orderId);
         if (order) {
@@ -213,8 +302,14 @@ export default function KitchenDashboard() {
 
   const handleConfirmAction = async () => {
     if (confirmDialog.orderId && confirmDialog.action) {
-      const newStatus =
-        confirmDialog.action === "complete" ? "completed" : "cancelled";
+      let newStatus: Order["status"];
+      if (confirmDialog.action === "serve") {
+        newStatus = "served";
+      } else if (confirmDialog.action === "complete") {
+        newStatus = "completed";
+      } else {
+        newStatus = "cancelled";
+      }
       await performStatusUpdate(confirmDialog.orderId, newStatus);
       setConfirmDialog({
         isOpen: false,
@@ -225,7 +320,6 @@ export default function KitchenDashboard() {
     }
   };
 
-  // Sort orders by creation time (oldest first) and filter by status
   const newOrders = orders
     .filter((o) => o.status === "pending")
     .sort(
@@ -240,12 +334,19 @@ export default function KitchenDashboard() {
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
 
+  const servedOrders = orders
+    .filter((o) => o.status === "served")
+    .sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+
   const previousOrders = orders
     .filter(
       (o) =>
         o.status === "completed" ||
         o.status === "cancelled" ||
-        o.status === "ready"
+        o.status === "served"
     )
     .sort(
       (a, b) =>
@@ -297,6 +398,8 @@ export default function KitchenDashboard() {
                 ? "🟡 Making"
                 : order.status === "ready"
                 ? "🟢 Ready"
+                : order.status === "served"
+                ? "🍽️ Served"
                 : "⚫ Done"}
             </Badge>
           </div>
@@ -312,15 +415,15 @@ export default function KitchenDashboard() {
 
         {/* Items - More visible */}
         <div className="space-y-1 max-h-16 overflow-hidden">
-          {order.items.slice(0, 3).map((item) => (
+          {(order.items || []).sort((a, b) => (a.name || "").localeCompare(b.name || "")).slice(0, 3).map((item) => (
             <div key={item.menu_item_id} className="text-sm leading-relaxed">
               <span className="font-semibold">{item.quantity}x</span>{" "}
-              {item.name}
+              {item.name || item.menu_item_id}
             </div>
           ))}
-          {order.items.length > 3 && (
+          {(order.items || []).length > 3 && (
             <div className="text-sm text-gray-500">
-              +{order.items.length - 3} more
+              +{(order.items || []).length - 3} more
             </div>
           )}
         </div>
@@ -340,22 +443,22 @@ export default function KitchenDashboard() {
             )}
             {order.status === "preparing" && (
               <Button
-                onClick={() => updateOrderStatus(order.id, "ready")}
+                onClick={() => updateOrderStatus(order.id, "served")}
                 disabled={isUpdating}
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 text-base h-10"
-                aria-label={`Mark order ${order.order_number} as ready`}
+                aria-label={`Serve order ${order.order_number}`}
               >
-                🟢 MARK READY
+                🍽️ SERVE ORDER
               </Button>
             )}
-            {order.status === "ready" && (
+            {order.status === "served" && (
               <Button
                 onClick={() => updateOrderStatus(order.id, "completed")}
                 disabled={isUpdating}
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 text-base h-10"
                 aria-label={`Mark order ${order.order_number} as completed`}
               >
-                ✅ COMPLETED
+                ✅ PAYMENT RECEIVED
               </Button>
             )}
             <Button
@@ -519,7 +622,11 @@ export default function KitchenDashboard() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {confirmDialog.action === "complete" ? (
+              {confirmDialog.action === "serve" ? (
+                <>
+                  🍽️ Serve Order
+                </>
+              ) : confirmDialog.action === "complete" ? (
                 <>
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   Complete Order
@@ -533,12 +640,20 @@ export default function KitchenDashboard() {
             </DialogTitle>
             <DialogDescription className="text-base">
               Are you sure you want to{" "}
-              {confirmDialog.action === "complete" ? "mark" : "cancel"} order{" "}
+              {confirmDialog.action === "serve" 
+                ? "serve" 
+                : confirmDialog.action === "complete"
+                ? "mark"
+                : "cancel"} order{" "}
               <span className="font-semibold text-gray-900">
                 {confirmDialog.orderNumber}
               </span>{" "}
               as{" "}
-              {confirmDialog.action === "complete" ? "completed" : "cancelled"}?
+              {confirmDialog.action === "serve" 
+                ? "served"
+                : confirmDialog.action === "complete"
+                ? "completed"
+                : "cancelled"}?
               {confirmDialog.action === "cancel" && (
                 <span className="block mt-2 text-red-600 font-medium">
                   This action cannot be undone.
@@ -565,13 +680,17 @@ export default function KitchenDashboard() {
               onClick={handleConfirmAction}
               disabled={isUpdating}
               className={`flex-1 ${
-                confirmDialog.action === "complete"
+                confirmDialog.action === "serve"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : confirmDialog.action === "complete"
                   ? "bg-green-600 hover:bg-green-700"
                   : "bg-red-600 hover:bg-red-700"
               }`}
             >
               {isUpdating
                 ? "Processing..."
+                : confirmDialog.action === "serve"
+                ? "Serve Order"
                 : confirmDialog.action === "complete"
                 ? "Complete Order"
                 : "Cancel Order"}
@@ -588,7 +707,7 @@ export default function KitchenDashboard() {
               📋 Previous Orders ({previousOrders.length})
             </DialogTitle>
             <DialogDescription>
-              Completed and cancelled orders from today
+              Completed, served, and cancelled orders from today
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto">
@@ -596,7 +715,7 @@ export default function KitchenDashboard() {
               <div className="text-center py-8">
                 <p className="text-lg text-gray-500">No previous orders</p>
                 <p className="text-sm text-gray-400">
-                  Completed and cancelled orders will appear here
+                  Completed, served, and cancelled orders will appear here
                 </p>
               </div>
             ) : (
@@ -625,6 +744,8 @@ export default function KitchenDashboard() {
                               ? "bg-gray-600"
                               : order.status === "ready"
                               ? "bg-green-600"
+                              : order.status === "served"
+                              ? "bg-blue-600"
                               : "bg-red-600"
                           }`}
                         >
@@ -632,6 +753,8 @@ export default function KitchenDashboard() {
                             ? "✅ Completed"
                             : order.status === "ready"
                             ? "🟢 Ready"
+                            : order.status === "served"
+                            ? "🍽️ Served"
                             : "❌ Cancelled"}
                         </Badge>
                       </div>
@@ -646,7 +769,7 @@ export default function KitchenDashboard() {
 
                       {/* Items */}
                       <div className="space-y-1 max-h-16 overflow-hidden">
-                        {order.items.slice(0, 3).map((item) => (
+                        {(order.items || []).slice(0, 3).map((item) => (
                           <div
                             key={item.menu_item_id}
                             className="text-sm leading-relaxed"
@@ -654,12 +777,12 @@ export default function KitchenDashboard() {
                             <span className="font-semibold">
                               {item.quantity}x
                             </span>{" "}
-                            {item.name}
+                            {item.name || item.menu_item_id}
                           </div>
                         ))}
-                        {order.items.length > 3 && (
+                        {(order.items || []).length > 3 && (
                           <div className="text-sm text-gray-500">
-                            +{order.items.length - 3} more
+                            +{(order.items || []).length - 3} more
                           </div>
                         )}
                       </div>

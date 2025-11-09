@@ -8,10 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle,
   Clock,
-  ChefHat,
-  Home,
   RefreshCw,
   AlertCircle,
+  ChefHat,
+  Home,
+  CreditCard,
 } from "lucide-react";
 
 interface OrderItem {
@@ -35,6 +36,7 @@ interface OrderData {
   created_at: string;
   updated_at: string;
   special_instructions?: string;
+  payment_status?: string;
 }
 
 export default function OrderConfirmationPage() {
@@ -137,17 +139,33 @@ export default function OrderConfirmationPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-orange-50 via-red-50 to-yellow-50">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-        {/* Success Header - Mobile optimized */}
+        {/* Header - Dynamic based on status */}
         <div className="text-center mb-6 md:mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full mb-4 md:mb-6">
-            <CheckCircle className="h-8 w-8 md:h-12 md:w-12 text-green-600" />
-          </div>
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
-            Order Confirmed!
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600">
-            Your delicious food is being prepared
-          </p>
+          {orderData.status.toLowerCase() === "served" ? (
+            <>
+              <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full mb-4 md:mb-6">
+                <CheckCircle className="h-8 w-8 md:h-12 md:w-12 text-green-600" />
+              </div>
+              <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
+                Order Complete!
+              </h1>
+              <p className="text-lg md:text-xl text-gray-600">
+                Your delicious food has been served
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full mb-4 md:mb-6">
+                <CheckCircle className="h-8 w-8 md:h-12 md:w-12 text-green-600" />
+              </div>
+              <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
+                Order Confirmed!
+              </h1>
+              <p className="text-lg md:text-xl text-gray-600">
+                Your delicious food is being prepared
+              </p>
+            </>
+          )}
         </div>
 
         {/* Order Details Card */}
@@ -197,33 +215,53 @@ export default function OrderConfirmationPage() {
               </p>
             </div>
 
-            {/* What's Next */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-gray-900 text-center text-sm md:text-base">
-                What&apos;s Next?
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
-                <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <CheckCircle className="mx-auto h-4 w-4 md:h-5 md:w-5 text-green-600 mb-2" />
-                  <p className="text-sm font-medium text-gray-900">
-                    Order Received
+            {/* What's Next - Dynamic based on status */}
+            {orderData.status.toLowerCase() === "served" ? (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 text-center text-sm md:text-base">
+                  Payment Required
+                </h4>
+                <div className="text-center p-4 md:p-6 bg-linear-to-r from-green-50 to-blue-50 rounded-lg border border-green-100">
+                  <CreditCard className="mx-auto h-6 w-6 md:h-8 md:w-8 text-green-600 mb-2 md:mb-3" />
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-1">
+                    Total Amount Due
+                  </h3>
+                  <p className="text-3xl md:text-4xl font-bold text-green-600 mb-2">
+                    ₹{orderData.total}
                   </p>
-                  <p className="text-xs text-gray-600">Kitchen notified</p>
-                </div>
-                <div className="text-center p-3 bg-orange-50 rounded-lg border-2 border-orange-200">
-                  <RefreshCw className="mx-auto h-4 w-4 md:h-5 md:w-5 text-orange-600 mb-2 animate-spin" />
-                  <p className="text-sm font-medium text-gray-900">Preparing</p>
-                  <p className="text-xs text-gray-600">Fresh ingredients</p>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <Clock className="mx-auto h-4 w-4 md:h-5 md:w-5 text-gray-400 mb-2" />
-                  <p className="text-sm font-medium text-gray-500">
-                    Ready Soon
+                  <p className="text-sm text-gray-600">
+                    Please pay at the counter
                   </p>
-                  <p className="text-xs text-gray-400">Hot & fresh</p>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 text-center text-sm md:text-base">
+                  What&apos;s Next?
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <CheckCircle className="mx-auto h-4 w-4 md:h-5 md:w-5 text-green-600 mb-2" />
+                    <p className="text-sm font-medium text-gray-900">
+                      Order Received
+                    </p>
+                    <p className="text-xs text-gray-600">Kitchen notified</p>
+                  </div>
+                  <div className="text-center p-3 bg-orange-50 rounded-lg border-2 border-orange-200">
+                    <RefreshCw className="mx-auto h-4 w-4 md:h-5 md:w-5 text-orange-600 mb-2 animate-spin" />
+                    <p className="text-sm font-medium text-gray-900">Preparing</p>
+                    <p className="text-xs text-gray-600">Fresh ingredients</p>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <Clock className="mx-auto h-4 w-4 md:h-5 md:w-5 text-gray-400 mb-2" />
+                    <p className="text-sm font-medium text-gray-500">
+                      Ready Soon
+                    </p>
+                    <p className="text-xs text-gray-400">Hot & fresh</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Notifications Info */}
             <div className="p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
