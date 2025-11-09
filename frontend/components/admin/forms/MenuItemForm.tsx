@@ -311,7 +311,7 @@ export function MenuItemForm({
       </div>
 
       {/* Submit Button */}
-      <Button type="submit" disabled={isLoading} className="w-full">
+      <Button type="submit" disabled={isLoading} className="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold">
         {isLoading
           ? "Saving..."
           : mode === "add"
