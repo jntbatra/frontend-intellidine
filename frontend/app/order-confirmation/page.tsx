@@ -17,29 +17,43 @@ import {
 
 interface OrderItem {
   id: string;
-  item_id: string;
+  item_id?: string;
+  menu_item_id?: string;
   quantity: number;
-  unit_price: number;
+  unit_price?: number;
+  price_at_order?: number;
   subtotal: number;
   special_requests?: string;
+  special_instructions?: string;
   name?: string;
   item_name?: string;
+  menu_item_name?: string;
   total?: number;
 }
 
 interface OrderData {
   id: string;
-  order_number?: string;
+  order_number?: string | number;
   status: string;
   total: number;
   subtotal: number;
-  gst: number;
-  table_number: number;
+  gst?: number;
+  tax_amount?: number;
+  discount_amount?: number;
+  discount_reason?: string;
+  discount_percent?: number;
+  delivery_charge?: number;
+  table_number?: number;
+  table_id?: string;
   items: OrderItem[];
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   special_instructions?: string;
   payment_status?: string;
+  payment_method?: string;
+  estimated_prep_time?: number;
+  estimated_ready_at?: string;
+  notes?: string;
 }
 
 export default function OrderConfirmationPage() {
@@ -304,11 +318,16 @@ export default function OrderConfirmationPage() {
                   >
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-900 text-sm md:text-base">
-                        {item.quantity}x {item.name || item.item_name || "Item"}
+                        {item.quantity}x{" "}
+                        {item.menu_item_name ||
+                          item.name ||
+                          item.item_name ||
+                          "Item"}
                       </p>
-                      {item.special_requests && (
+                      {(item.special_requests || item.special_instructions) && (
                         <p className="text-xs md:text-sm text-gray-600 italic">
-                          Note: {item.special_requests}
+                          Note:{" "}
+                          {item.special_requests || item.special_instructions}
                         </p>
                       )}
                     </div>
@@ -326,17 +345,34 @@ export default function OrderConfirmationPage() {
             <div className="mt-4 md:mt-6 pt-4 border-t border-gray-200 space-y-2">
               <div className="flex justify-between text-sm md:text-base">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="font-medium">₹{orderData.subtotal}</span>
+                <span className="font-medium">
+                  ₹{orderData.subtotal.toFixed(2)}
+                </span>
               </div>
+              {orderData.discount_amount !== undefined &&
+                orderData.discount_amount !== null &&
+                orderData.discount_amount > 0 && (
+                  <div className="flex justify-between text-sm md:text-base text-green-600">
+                    <span>{orderData.discount_reason || "Discount"}</span>
+                    <span className="font-medium">
+                      -₹{orderData.discount_amount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
               <div className="flex justify-between text-sm md:text-base">
                 <span className="text-gray-600">GST (18%)</span>
                 <span className="font-medium">
-                  ₹{orderData.gst || (orderData.subtotal * 0.18).toFixed(2)}
+                  ₹
+                  {orderData.tax_amount
+                    ? orderData.tax_amount.toFixed(2)
+                    : (orderData.subtotal * 0.18).toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between font-bold text-base md:text-lg pt-2 border-t border-gray-300">
                 <span>Total</span>
-                <span className="text-orange-600">₹{orderData.total}</span>
+                <span className="text-orange-600">
+                  ₹{orderData.total.toFixed(2)}
+                </span>
               </div>
             </div>
           </CardContent>

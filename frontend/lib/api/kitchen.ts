@@ -24,6 +24,7 @@ interface RawOrderResponse {
   subtotal: number;
   discount_amount: number;
   discount_reason: string;
+  discount_percent?: number;
   tax_amount: number;
   total: number;
   created_at: string;
@@ -172,7 +173,11 @@ export async function fetchKitchenOrders(
         items,
         subtotal: rawOrder.subtotal,
         tax: rawOrder.tax_amount,
+        tax_amount: rawOrder.tax_amount,
         total_amount: rawOrder.total,
+        discount_amount: rawOrder.discount_amount,
+        discount_reason: rawOrder.discount_reason,
+        discount_percent: rawOrder.discount_percent,
         status: mapBackendStatusToFrontend(rawOrder.status),
         payment_method: "cash",
         notes: undefined,

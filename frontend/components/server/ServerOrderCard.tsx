@@ -3,26 +3,26 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { Order } from "@/lib/api/admin/orders";
 import { getTimeElapsed, getTableNumber } from "@/hooks/use-kitchen-orders";
-import { Clock, Users } from "lucide-react";
-import { ItemCutter } from "./ItemCutter";
+import { Clock, Users, DollarSign, TrendingDown } from "lucide-react";
 
-interface OrderCardProps {
+interface ServerOrderCardProps {
   order: Order;
   onStatusChange?: (
+    orderId: string,
     status: "in_preparation" | "ready" | "served" | "completed"
   ) => void;
-  onCancel?: (reason: string) => void;
+  onCancelOrder?: (orderId: string, reason: string) => void;
   isUpdating?: boolean;
   isCancelling?: boolean;
 }
 
-export function OrderCard({
+export function ServerOrderCard({
   order,
   onStatusChange,
-  onCancel,
+  onCancelOrder,
   isUpdating = false,
   isCancelling = false,
-}: OrderCardProps) {
+}: ServerOrderCardProps) {
   const tableNumber = getTableNumber(order.table_id);
   const timeElapsed = getTimeElapsed(order.created_at);
   const [showCancelConfirm, setShowCancelConfirm] = React.useState(false);
@@ -126,49 +126,77 @@ export function OrderCard({
         <span>{timeElapsed}</span>
       </div>
 
-      {/* Items List - Hide in preparing tab */}
-      {order.status !== "in_preparation" && (
-        <div className="mb-4 bg-gray-50 rounded p-3 border border-gray-200">
-          <h4 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
-            Items ({order.items?.length || 0})
-          </h4>
-          {order.items && order.items.length > 0 ? (
-            <ul className="space-y-2">
-              {order.items.map((item) => (
-                <li key={item.id} className="text-sm text-gray-800">
-                  <div className="flex items-baseline justify-between">
-                    <span className="font-medium">
-                      {item.name}{" "}
-                      <span className="font-bold text-orange-600">
-                        ×{item.quantity}
-                      </span>
+      {/* Items List - Always show on server display */}
+      <div className="mb-4 bg-gray-50 rounded p-3 border border-gray-200">
+        <h4 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
+          Items ({order.items?.length || 0})
+        </h4>
+        {order.items && order.items.length > 0 ? (
+          <ul className="space-y-2">
+            {order.items.map((item) => (
+              <li key={item.id} className="text-sm text-gray-800">
+                <div className="flex items-baseline justify-between">
+                  <span className="font-medium">
+                    {item.name}{" "}
+                    <span className="font-bold text-orange-600">
+                      ×{item.quantity}
                     </span>
+                  </span>
+                  <span className="text-sm font-semibold text-green-600">
+                    ₹{(item.subtotal || item.total || 0).toFixed(2)}
+                  </span>
+                </div>
+                {item.special_instructions && (
+                  <div className="text-xs text-orange-600 font-semibold mt-1 bg-orange-50 px-2 py-1 rounded border border-orange-200">
+                    📝 {item.special_instructions}
                   </div>
-                  {item.special_instructions && (
-                    <div className="text-xs text-orange-600 font-semibold mt-1 bg-orange-50 px-2 py-1 rounded border border-orange-200">
-                      📝 {item.special_instructions}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-xs text-gray-500 italic">No items in order</p>
-          )}
-        </div>
-      )}
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-gray-500 italic">No items in order</p>
+        )}
+      </div>
 
-      {/* Item Cutter - Show only when in preparation */}
-      {order.status === "in_preparation" &&
-        order.items &&
-        order.items.length > 0 && (
-          <div className="mb-4">
-            <ItemCutter orderId={order.id} items={order.items} />
+      {/* Price Information - Full Breakdown for Server */}
+      <div className="mb-4 border-t border-gray-200 pt-3 space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Subtotal:</span>
+          <span className="font-medium text-gray-800">
+            ₹{(order.subtotal || 0).toFixed(2)}
+          </span>
+        </div>
+
+        {order.discount_amount && order.discount_amount > 0 && (
+          <div className="flex justify-between text-sm text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
+            <div className="flex items-center gap-1">
+              <TrendingDown className="w-3 h-3" />
+              <span>{order.discount_reason || "Discount"}</span>
+            </div>
+            <span className="font-bold">
+              -₹{order.discount_amount.toFixed(2)}
+            </span>
           </div>
         )}
 
-      {/* Price Information - Hidden in Kitchen Display */}
-      {/* Prices are only shown on server/staff displays, not in kitchen display */}
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Tax (18%):</span>
+          <span className="font-medium text-gray-800">
+            ₹{((order.tax_amount ?? order.tax ?? 0) || 0).toFixed(2)}
+          </span>
+        </div>
+
+        <div className="flex justify-between items-center text-base font-bold border-t border-gray-200 pt-2 bg-blue-50 px-2 py-2 rounded">
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-blue-600" />
+            <span>Total:</span>
+          </div>
+          <span className="text-lg text-blue-600">
+            ₹{(order.total_amount || 0).toFixed(2)}
+          </span>
+        </div>
+      </div>
 
       {/* Notes */}
       {order.notes && (
@@ -182,7 +210,7 @@ export function OrderCard({
       <div className="space-y-2">
         {nextStatus && (
           <button
-            onClick={() => onStatusChange?.(nextStatus)}
+            onClick={() => onStatusChange?.(order.id, nextStatus)}
             disabled={isUpdating || isCancelling}
             className={`w-full py-2 px-3 rounded font-semibold text-white text-sm transition-all ${getActionButtonColor()} ${
               isUpdating || isCancelling
@@ -222,7 +250,10 @@ export function OrderCard({
                     cancelReason.trim() ||
                     window.confirm("Cancel without a reason?")
                   ) {
-                    onCancel?.(cancelReason || "No reason provided");
+                    onCancelOrder?.(
+                      order.id,
+                      cancelReason || "No reason provided"
+                    );
                     setShowCancelConfirm(false);
                     setCancelReason("");
                   }

@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 const KITCHEN_ORDERS_QUERY_KEY = ["kitchen-orders"];
 const KITCHEN_STATS_QUERY_KEY = ["kitchen-stats"];
-const AUTO_REFRESH_INTERVAL = 15000; // 15 seconds
+const AUTO_REFRESH_INTERVAL = 60000; // 60 seconds (changed from 15 seconds)
 
 /**
  * Custom hook for kitchen order management
@@ -105,6 +105,21 @@ export function useKitchenOrders(tenantId: string, enabled = true) {
     statsQuery.refetch();
   }, [ordersQuery, statsQuery]);
 
+  // Lazy refresh with delay (useful for cart updates, etc.)
+  // Triggers refresh after specified delay in milliseconds
+  const lazyRefresh = useCallback(
+    (delayMs: number = 2000) => {
+      const timeoutId = setTimeout(() => {
+        ordersQuery.refetch();
+        statsQuery.refetch();
+      }, delayMs);
+
+      // Return function to cancel the lazy refresh if needed
+      return () => clearTimeout(timeoutId);
+    },
+    [ordersQuery, statsQuery]
+  );
+
   return {
     // Order data
     orders: ordersQuery.data?.data || [],
@@ -128,6 +143,7 @@ export function useKitchenOrders(tenantId: string, enabled = true) {
     autoRefresh,
     toggleAutoRefresh,
     manualRefresh,
+    lazyRefresh,
   };
 }
 

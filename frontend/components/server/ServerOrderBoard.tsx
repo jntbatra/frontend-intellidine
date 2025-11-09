@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { OrderColumn } from "../kitchen/OrderColumn";
+import { ServerOrderCard } from "./ServerOrderCard";
 import {
   useKitchenOrders,
   groupOrdersByStatus,
@@ -170,7 +170,7 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
             </div>
           </div>
           <div className="text-xs text-gray-500">
-            Auto-refresh: {autoRefresh ? "ON (15s)" : "OFF"}
+            Auto-refresh: {autoRefresh ? "ON (60s)" : "OFF"}
           </div>
         </div>
       </div>
@@ -186,33 +186,55 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max h-[calc(100vh-220px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Ready Orders Column */}
-          <div className="lg:h-auto">
-            <OrderColumn
-              title="Ready for Pickup"
-              orders={readyOrders}
-              columnColor="green"
-              onOrderStatusChange={handleOrderStatusChange}
-              onCancelOrder={handleCancelOrder}
-              isUpdating={isUpdating}
-              isCancelling={isCancelling}
-              emptyMessage="No orders ready for pickup"
-            />
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 p-3 bg-green-50 rounded border-l-4 border-green-600">
+              🟢 Ready for Pickup ({readyOrders.length})
+            </h2>
+            {readyOrders.length > 0 ? (
+              <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+                {readyOrders.map((order) => (
+                  <ServerOrderCard
+                    key={order.id}
+                    order={order}
+                    onStatusChange={handleOrderStatusChange}
+                    onCancelOrder={handleCancelOrder}
+                    isUpdating={isUpdating}
+                    isCancelling={isCancelling}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <p className="text-gray-500">No orders ready for pickup</p>
+              </div>
+            )}
           </div>
 
           {/* Served Orders Column */}
-          <div className="lg:h-auto">
-            <OrderColumn
-              title="Served to Table"
-              orders={servedOrders}
-              columnColor="purple"
-              onOrderStatusChange={handleOrderStatusChange}
-              onCancelOrder={handleCancelOrder}
-              isUpdating={isUpdating}
-              isCancelling={isCancelling}
-              emptyMessage="No orders being served yet"
-            />
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 p-3 bg-purple-50 rounded border-l-4 border-purple-600">
+              🟣 Served to Table ({servedOrders.length})
+            </h2>
+            {servedOrders.length > 0 ? (
+              <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+                {servedOrders.map((order) => (
+                  <ServerOrderCard
+                    key={order.id}
+                    order={order}
+                    onStatusChange={handleOrderStatusChange}
+                    onCancelOrder={handleCancelOrder}
+                    isUpdating={isUpdating}
+                    isCancelling={isCancelling}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <p className="text-gray-500">No orders being served yet</p>
+              </div>
+            )}
           </div>
         </div>
       )}

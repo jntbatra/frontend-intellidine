@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   ShoppingCart,
@@ -17,8 +16,11 @@ import {
   Clock,
   ChefHat,
   AlertCircle,
+  TrendingDown,
 } from "lucide-react";
 import { Navigation } from "@/components/navigation";
+import { useCalculateDiscount } from "@/hooks/use-calculate-discount";
+import { useKitchenOrders } from "@/hooks/use-kitchen-orders";
 
 interface CartItem {
   menu_item_id: string;
@@ -38,6 +40,14 @@ export default function CartPage() {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isLoadingCart, setIsLoadingCart] = useState(true);
+
+  // Initialize discount hook
+  const { discountData, calculateDiscount } = useCalculateDiscount(
+    tenantId || ""
+  );
+
+  // Initialize kitchen orders hook for lazy refresh on cart updates
+  const { lazyRefresh } = useKitchenOrders(tenantId || "", false);
 
   // Authentication check
   useEffect(() => {
@@ -67,10 +77,21 @@ export default function CartPage() {
   useEffect(() => {
     if (cart.length > 0) {
       localStorage.setItem(`cart_${tableId}_${tenantId}`, JSON.stringify(cart));
+
+      // Calculate discount when cart changes
+      if (tenantId) {
+        calculateDiscount(
+          cart.map((item) => ({
+            menu_item_id: item.menu_item_id,
+            quantity: item.quantity,
+          })),
+          "RAZORPAY" // Default payment method
+        );
+      }
     } else {
       localStorage.removeItem(`cart_${tableId}_${tenantId}`);
     }
-  }, [cart, tableId, tenantId]);
+  }, [cart, tableId, tenantId, calculateDiscount]);
 
   const updateQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -83,10 +104,16 @@ export default function CartPage() {
         item.menu_item_id === itemId ? { ...item, quantity: newQuantity } : item
       )
     );
+
+    // Trigger lazy refresh after cart update (2 second delay)
+    lazyRefresh(2000);
   };
 
   const removeItem = (itemId: string) => {
     setCart((prev) => prev.filter((item) => item.menu_item_id !== itemId));
+
+    // Trigger lazy refresh after removing item (2 second delay)
+    lazyRefresh(2000);
   };
 
   const updateSpecialInstructions = (itemId: string, instructions: string) => {
@@ -103,9 +130,30 @@ export default function CartPage() {
     () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cart]
   );
-  const getTax = () => Math.round(getSubtotal() * 0.18); // 18% GST
 
-  const getTotal = () => getSubtotal() + getTax();
+  const getTax = () => {
+    // Use discount data if available, otherwise calculate manually
+    if (
+      discountData &&
+      discountData.tax_amount !== undefined &&
+      discountData.tax_amount !== null
+    ) {
+      return discountData.tax_amount;
+    }
+    return Math.round(getSubtotal() * 0.18); // 18% GST
+  };
+
+  const getTotal = () => {
+    // Use discount data if available, otherwise calculate manually
+    if (
+      discountData &&
+      discountData.total !== undefined &&
+      discountData.total !== null
+    ) {
+      return discountData.total;
+    }
+    return getSubtotal() + getTax();
+  };
 
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return;
@@ -124,7 +172,7 @@ export default function CartPage() {
         payment_method: "RAZORPAY",
       };
 
-            // Make API call to create order
+      // Make API call to create order
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         "X-Tenant-ID": tenantId || "",
@@ -152,10 +200,11 @@ export default function CartPage() {
           errorData,
           requestData: orderData,
           headers: { ...headers, Authorization: "[REDACTED]" },
-          apiUrl: process.env.NEXT_PUBLIC_API_URL
+          apiUrl: process.env.NEXT_PUBLIC_API_URL,
         });
         throw new Error(
-          errorData.message || `Failed to create order: ${response.status} ${response.statusText}`
+          errorData.message ||
+            `Failed to create order: ${response.status} ${response.statusText}`
         );
       }
 
@@ -473,6 +522,17 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span>₹{getSubtotal()}</span>
                 </div>
+                {discountData && discountData.discount_amount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
+                    <div className="flex items-center gap-1">
+                      <TrendingDown className="w-3 h-3" />
+                      <span>{discountData.discount_reason || "Discount"}</span>
+                    </div>
+                    <span className="font-bold">
+                      -₹{discountData.discount_amount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span>Tax (GST 18%)</span>
                   <span>₹{getTax()}</span>
@@ -625,6 +685,19 @@ export default function CartPage() {
                     <span>Subtotal</span>
                     <span>₹{getSubtotal()}</span>
                   </div>
+                  {discountData && discountData.discount_amount > 0 && (
+                    <div className="flex justify-between text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
+                      <div className="flex items-center gap-1">
+                        <TrendingDown className="w-3 h-3" />
+                        <span>
+                          {discountData.discount_reason || "Discount"}
+                        </span>
+                      </div>
+                      <span className="font-bold">
+                        -₹{discountData.discount_amount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span>Tax (GST 18%)</span>
                     <span>₹{getTax()}</span>

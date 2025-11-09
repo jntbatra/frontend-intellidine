@@ -141,7 +141,7 @@ export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
             </div>
           </div>
           <div className="text-xs text-gray-500">
-            Auto-refresh: {autoRefresh ? "ON (15s)" : "OFF"}
+            Auto-refresh: {autoRefresh ? "ON (60s)" : "OFF"}
           </div>
         </div>
       </div>
