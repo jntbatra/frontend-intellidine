@@ -12,6 +12,7 @@ import {
   Pause,
   Play,
   CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -29,6 +30,8 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
     error,
     updateOrderStatus,
     isUpdating,
+    cancelOrder,
+    isCancelling,
     autoRefresh,
     toggleAutoRefresh,
     manualRefresh,
@@ -45,6 +48,10 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
 
   const handleOrderStatusChange = (orderId: string, status: OrderStatus) => {
     updateOrderStatus({ orderId, status });
+  };
+
+  const handleCancelOrder = (orderId: string, reason: string) => {
+    cancelOrder({ orderId, reason });
   };
 
   // Show error state
@@ -126,6 +133,17 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
                 Completed Orders
               </Button>
             </Link>
+
+            <Link href="/server/cancelled">
+              <Button
+                variant="outline"
+                className="gap-2 border-red-300 text-red-700 hover:bg-red-50"
+                size="lg"
+              >
+                <XCircle className="w-4 h-4" />
+                Cancelled Orders
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -176,7 +194,9 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
               orders={readyOrders}
               columnColor="green"
               onOrderStatusChange={handleOrderStatusChange}
+              onCancelOrder={handleCancelOrder}
               isUpdating={isUpdating}
+              isCancelling={isCancelling}
               emptyMessage="No orders ready for pickup"
             />
           </div>
@@ -188,7 +208,9 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
               orders={servedOrders}
               columnColor="purple"
               onOrderStatusChange={handleOrderStatusChange}
+              onCancelOrder={handleCancelOrder}
               isUpdating={isUpdating}
+              isCancelling={isCancelling}
               emptyMessage="No orders being served yet"
             />
           </div>

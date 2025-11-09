@@ -9,7 +9,9 @@ interface OrderColumnProps {
   orders: Order[];
   columnColor: "yellow" | "blue" | "green" | "purple";
   onOrderStatusChange: (orderId: string, status: OrderStatus) => void;
+  onCancelOrder?: (orderId: string, reason: string) => void;
   isUpdating?: boolean;
+  isCancelling?: boolean;
   emptyMessage?: string;
 }
 
@@ -49,7 +51,9 @@ export function OrderColumn({
   orders,
   columnColor,
   onOrderStatusChange,
+  onCancelOrder,
   isUpdating = false,
+  isCancelling = false,
   emptyMessage = "No orders",
 }: OrderColumnProps) {
   const colors = colorClasses[columnColor];
@@ -87,7 +91,9 @@ export function OrderColumn({
                 onStatusChange={(newStatus) =>
                   onOrderStatusChange(order.id, newStatus)
                 }
+                onCancel={(reason) => onCancelOrder?.(order.id, reason)}
                 isUpdating={isUpdating}
+                isCancelling={isCancelling}
               />
             ))}
           </div>

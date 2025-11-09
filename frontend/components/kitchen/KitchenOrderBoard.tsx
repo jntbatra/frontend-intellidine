@@ -6,8 +6,9 @@ import {
   useKitchenOrders,
   groupOrdersByStatus,
 } from "@/hooks/use-kitchen-orders";
-import { AlertCircle, RefreshCw, Pause, Play } from "lucide-react";
+import { AlertCircle, RefreshCw, Pause, Play, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import type { OrderStatus } from "@/lib/api/admin/orders";
 
 interface KitchenOrderBoardProps {
@@ -22,6 +23,8 @@ export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
     error,
     updateOrderStatus,
     isUpdating,
+    cancelOrder,
+    isCancelling,
     autoRefresh,
     toggleAutoRefresh,
     manualRefresh,
@@ -31,6 +34,10 @@ export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
 
   const handleOrderStatusChange = (orderId: string, status: OrderStatus) => {
     updateOrderStatus({ orderId, status });
+  };
+
+  const handleCancelOrder = (orderId: string, reason: string) => {
+    cancelOrder({ orderId, reason });
   };
 
   // Show error state
@@ -101,6 +108,17 @@ export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
                 </>
               )}
             </Button>
+
+            <Link href="/kitchen/cancelled">
+              <Button
+                variant="outline"
+                className="gap-2"
+                size="lg"
+              >
+                <XCircle className="w-4 h-4" />
+                Cancelled Orders
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -151,7 +169,9 @@ export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
               orders={groupedOrders.pending}
               columnColor="yellow"
               onOrderStatusChange={handleOrderStatusChange}
+              onCancelOrder={handleCancelOrder}
               isUpdating={isUpdating}
+              isCancelling={isCancelling}
               emptyMessage="No new orders"
             />
           </div>
@@ -163,7 +183,9 @@ export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
               orders={groupedOrders.preparing}
               columnColor="blue"
               onOrderStatusChange={handleOrderStatusChange}
+              onCancelOrder={handleCancelOrder}
               isUpdating={isUpdating}
+              isCancelling={isCancelling}
               emptyMessage="No orders being prepared"
             />
           </div>
