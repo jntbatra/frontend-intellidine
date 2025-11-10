@@ -17,32 +17,50 @@ import {
 
 interface OrderItem {
   id: string;
-  item_id: string;
+  item_id?: string;
+  menu_item_id?: string;
   quantity: number;
-  unit_price: number;
+  unit_price?: number;
+  price_at_order?: number;
   subtotal: number;
   special_requests?: string;
+  special_instructions?: string;
+  name?: string;
+  item_name?: string;
+  menu_item_name?: string;
+  total?: number;
 }
 
 interface OrderData {
   id: string;
-  order_number?: string;
+  order_number?: string | number;
   status: string;
   total: number;
   subtotal: number;
-  gst: number;
-  table_number: number;
+  gst?: number;
+  tax_amount?: number;
+  discount_amount?: number;
+  discount_reason?: string;
+  discount_percent?: number;
+  delivery_charge?: number;
+  table_number?: number;
+  table_id?: string;
   items: OrderItem[];
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   special_instructions?: string;
   payment_status?: string;
+  payment_method?: string;
+  estimated_prep_time?: number;
+  estimated_ready_at?: string;
+  notes?: string;
 }
 
 export default function OrderConfirmationPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tableId = searchParams.get("table_id");
+  const table_number = searchParams.get("table_number");
   const tenantId = searchParams.get("tenant_id");
   const orderId = searchParams.get("order_id");
 
@@ -181,7 +199,7 @@ export default function OrderConfirmationPage() {
             <div className="text-center">
               <p className="text-sm text-gray-500 mb-1">Order Number</p>
               <p className="text-xl md:text-2xl font-bold text-orange-600">
-                {orderData.order_number || orderData.id}
+                #{orderData.order_number || orderData.id}
               </p>
             </div>
 
@@ -190,7 +208,7 @@ export default function OrderConfirmationPage() {
               <div>
                 <p className="text-sm text-gray-500">Table</p>
                 <p className="font-semibold text-gray-900">
-                  {orderData.table_number}
+                  {table_number || orderData.table_number}
                 </p>
               </div>
               <div className="text-right">
@@ -249,7 +267,9 @@ export default function OrderConfirmationPage() {
                   </div>
                   <div className="text-center p-3 bg-orange-50 rounded-lg border-2 border-orange-200">
                     <RefreshCw className="mx-auto h-4 w-4 md:h-5 md:w-5 text-orange-600 mb-2 animate-spin" />
-                    <p className="text-sm font-medium text-gray-900">Preparing</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      Preparing
+                    </p>
                     <p className="text-xs text-gray-600">Fresh ingredients</p>
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -290,41 +310,69 @@ export default function OrderConfirmationPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2 md:space-y-3">
-              {orderData.items.map((item: OrderItem) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm md:text-base">
-                      {item.quantity}x Item
-                    </p>
-                    {item.special_requests && (
-                      <p className="text-xs md:text-sm text-gray-600 italic">
-                        Note: {item.special_requests}
+              {orderData.items && orderData.items.length > 0 ? (
+                orderData.items.map((item: OrderItem) => (
+                  <div
+                    key={item.id}
+                    className="flex justify-between items-start p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 text-sm md:text-base">
+                        {item.quantity}x{" "}
+                        {item.menu_item_name ||
+                          item.name ||
+                          item.item_name ||
+                          "Item"}
                       </p>
-                    )}
+                      {(item.special_requests || item.special_instructions) && (
+                        <p className="text-xs md:text-sm text-gray-600 italic">
+                          Note:{" "}
+                          {item.special_requests || item.special_instructions}
+                        </p>
+                      )}
+                    </div>
+                    <span className="font-bold text-base md:text-lg text-gray-900 shrink-0 ml-3">
+                      ₹{item.subtotal || item.total}
+                    </span>
                   </div>
-                  <span className="font-bold text-base md:text-lg text-gray-900 shrink-0">
-                    ₹{item.subtotal}
-                  </span>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">No items in order</p>
+              )}
             </div>
 
             {/* Order Summary */}
             <div className="mt-4 md:mt-6 pt-4 border-t border-gray-200 space-y-2">
               <div className="flex justify-between text-sm md:text-base">
-                <span>Subtotal</span>
-                <span>₹{orderData.subtotal}</span>
+                <span className="text-gray-600">Subtotal</span>
+                <span className="font-medium">
+                  ₹{orderData.subtotal.toFixed(2)}
+                </span>
               </div>
+              {orderData.discount_amount !== undefined &&
+                orderData.discount_amount !== null &&
+                orderData.discount_amount > 0 && (
+                  <div className="flex justify-between text-sm md:text-base text-green-600">
+                    <span>{orderData.discount_reason || "Discount"}</span>
+                    <span className="font-medium">
+                      -₹{orderData.discount_amount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
               <div className="flex justify-between text-sm md:text-base">
-                <span>GST (18%)</span>
-                <span>₹{orderData.gst}</span>
+                <span className="text-gray-600">GST (18%)</span>
+                <span className="font-medium">
+                  ₹
+                  {orderData.tax_amount
+                    ? orderData.tax_amount.toFixed(2)
+                    : (orderData.subtotal * 0.18).toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between font-bold text-base md:text-lg pt-2 border-t border-gray-300">
                 <span>Total</span>
-                <span className="text-orange-600">₹{orderData.total}</span>
+                <span className="text-orange-600">
+                  ₹{orderData.total.toFixed(2)}
+                </span>
               </div>
             </div>
           </CardContent>

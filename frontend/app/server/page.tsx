@@ -1,12 +1,12 @@
-﻿"use client";
+"use client";
 
-import { KitchenOrderBoard } from "@/components/kitchen/KitchenOrderBoard";
+import { ServerOrderBoard } from "@/components/server/ServerOrderBoard";
 import { useEffect, useState } from "react";
 
 // Default tenant ID for development/testing
 const DEFAULT_TENANT_ID = "11111111-1111-1111-1111-111111111111";
 
-export default function KitchenPage() {
+export default function ServerPage() {
   const [tenantId, setTenantId] = useState<string>("");
   const [isReady, setIsReady] = useState(false);
 
@@ -24,8 +24,7 @@ export default function KitchenPage() {
 
     // Set a dummy auth token for development if not present
     if (!localStorage.getItem("auth_token")) {
-      // This is a placeholder - in production, users would get this from login
-      localStorage.setItem("auth_token", "dev-token-kitchen-display");
+      localStorage.setItem("auth_token", "dev-token-server-display");
     }
 
     setTenantId(storedTenantId);
@@ -37,7 +36,7 @@ export default function KitchenPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Kitchen Display System
+            Server Display System
           </h1>
           <p className="text-gray-600">Initializing...</p>
           <p className="text-sm text-gray-500 mt-2">
@@ -48,5 +47,5 @@ export default function KitchenPage() {
     );
   }
 
-  return <KitchenOrderBoard tenantId={tenantId} />;
+  return <ServerOrderBoard tenantId={tenantId} />;
 }

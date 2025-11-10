@@ -1,4 +1,10 @@
-export type OrderStatus = "pending" | "in_preparation" | "ready" | "completed" | "cancelled";
+export type OrderStatus =
+  | "pending"
+  | "in_preparation"
+  | "ready"
+  | "served"
+  | "completed"
+  | "cancelled";
 
 export interface OrderItem {
   id: string;
@@ -6,6 +12,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   total: number;
+  subtotal?: number;
   special_instructions?: string;
 }
 
@@ -18,7 +25,12 @@ export interface Order {
   items: OrderItem[];
   subtotal: number;
   tax: number;
+  tax_amount?: number;
   total_amount: number;
+  total?: number;
+  discount_amount?: number;
+  discount_reason?: string;
+  discount_percent?: number;
   status: OrderStatus;
   payment_method: "cash" | "card" | "upi" | "wallet";
   notes?: string;
