@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { StaffRole } from "@/lib/api/admin/staff";
 
 interface StaffFormProps {
   onSubmit: (data: StaffFormData) => Promise<void>;
@@ -28,7 +29,7 @@ export interface StaffFormData {
   email: string;
   phone?: string;
   password?: string;
-  role: "MANAGER" | "KITCHEN_STAFF" | "WAITER";
+  role: StaffRole;
   is_active?: boolean;
 }
 
@@ -166,6 +167,8 @@ export function StaffForm({
             <SelectItem value="KITCHEN_STAFF">Kitchen Staff</SelectItem>
             <SelectItem value="WAITER">Waiter</SelectItem>
             <SelectItem value="MANAGER">Manager</SelectItem>
+            <SelectItem value="ACCOUNTANT">Accountant</SelectItem>
+            <SelectItem value="STAFF">Staff</SelectItem>
           </SelectContent>
         </Select>
         {errors.role && (

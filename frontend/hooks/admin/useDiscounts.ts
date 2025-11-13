@@ -1,8 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Discount, DiscountStats } from "@/lib/api/admin/discounts";
-import { MOCK_DISCOUNTS, generateDiscountStats } from "@/lib/constants/mockDiscounts";
+import {
+  Discount,
+  DiscountStats,
+  DiscountType,
+} from "@/lib/api/admin/discounts";
+import {
+  MOCK_DISCOUNTS,
+  generateDiscountStats,
+} from "@/lib/constants/mockDiscounts";
 
 export function useDiscounts() {
   const [discounts, setDiscounts] = useState<Discount[]>(MOCK_DISCOUNTS);
@@ -24,7 +31,8 @@ export function useDiscounts() {
       const matchesSearch =
         searchQuery === "" ||
         discount.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        discount.name.toLowerCase().includes(searchQuery.toLowerCase());
+        (discount.name &&
+          discount.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
       return matchesStatus && matchesType && matchesSearch;
     });
@@ -36,39 +44,36 @@ export function useDiscounts() {
   }, [discounts]);
 
   // Create new discount
-  const createDiscount = useCallback(
-    async (data: Partial<Discount>) => {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
+  const createDiscount = useCallback(async (data: Partial<Discount>) => {
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const newDiscount: Discount = {
-        id: `disc-${Date.now()}`,
-        code: data.code || "",
-        name: data.name || "",
-        description: data.description || "",
-        type: data.type || "percentage",
-        value: data.value || 10,
-        max_discount: data.max_discount,
-        status: data.status || "active",
-        conditions: data.conditions,
-        valid_from: data.valid_from || new Date().toISOString(),
-        valid_until: data.valid_until || new Date().toISOString(),
-        is_stackable: data.is_stackable || false,
-        usage_limit: data.usage_limit,
-        usage_count: 0,
-        active_users: 0,
-        total_savings: 0,
-        created_at: new Date().toISOString(),
-        created_by: "admin@intellidine.com",
-      };
+    const newDiscount: Discount = {
+      id: `disc-${Date.now()}`,
+      code: data.code || "",
+      name: data.name || "",
+      description: data.description || "",
+      type: data.type || "percentage",
+      value: data.value || 10,
+      max_discount: data.max_discount,
+      status: data.status || "active",
+      conditions: data.conditions,
+      valid_from: data.valid_from || new Date().toISOString(),
+      valid_until: data.valid_until || new Date().toISOString(),
+      is_stackable: data.is_stackable || false,
+      usage_limit: data.usage_limit,
+      usage_count: 0,
+      active_users: 0,
+      total_savings: 0,
+      created_at: new Date().toISOString(),
+      created_by: "admin@intellidine.com",
+    };
 
-      setDiscounts((prev) => [newDiscount, ...prev]);
-      console.log("✅ Discount created:", newDiscount);
+    setDiscounts((prev) => [newDiscount, ...prev]);
+    console.log("✅ Discount created:", newDiscount);
 
-      return newDiscount;
-    },
-    []
-  );
+    return newDiscount;
+  }, []);
 
   // Update discount
   const updateDiscount = useCallback(
@@ -105,50 +110,44 @@ export function useDiscounts() {
   );
 
   // Update discount usage
-  const recordUsage = useCallback(
-    async (id: string, savingsAmount: number) => {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
+  const recordUsage = useCallback(async (id: string, savingsAmount: number) => {
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-      setDiscounts((prev) =>
-        prev.map((discount) =>
-          discount.id === id
-            ? {
-                ...discount,
-                usage_count: discount.usage_count + 1,
-                total_savings: discount.total_savings + savingsAmount,
-                last_used_at: new Date().toISOString(),
-              }
-            : discount
-        )
-      );
+    setDiscounts((prev) =>
+      prev.map((discount) =>
+        discount.id === id
+          ? {
+              ...discount,
+              usage_count: (discount.usage_count || 0) + 1,
+              total_savings: (discount.total_savings || 0) + savingsAmount,
+              last_used_at: new Date().toISOString(),
+            }
+          : discount
+      )
+    );
 
-      console.log("✅ Discount usage recorded:", id, savingsAmount);
-    },
-    []
-  );
+    console.log("✅ Discount usage recorded:", id, savingsAmount);
+  }, []);
 
   // Get discount statistics by type
   const getStatsByType = useCallback(() => {
-    return discounts.reduce(
-      (acc, discount) => {
-        const existing = acc.find((t) => t.type === discount.type);
-        if (existing) {
-          existing.count++;
-          existing.totalUsage += discount.usage_count;
-          existing.totalSavings += discount.total_savings;
-        } else {
-          acc.push({
-            type: discount.type,
-            count: 1,
-            totalUsage: discount.usage_count,
-            totalSavings: discount.total_savings,
-          });
-        }
-        return acc;
-      },
-      [] as any[]
-    );
+    return discounts.reduce((acc, discount) => {
+      const existing = acc.find((t) => t.type === discount.type);
+      if (existing) {
+        existing.count++;
+        existing.totalUsage += discount.usage_count || 0;
+        existing.totalSavings += discount.total_savings || 0;
+      } else {
+        acc.push({
+          type: discount.type,
+          count: 1,
+          totalUsage: discount.usage_count || 0,
+          totalSavings: discount.total_savings || 0,
+        });
+      }
+      return acc;
+    }, [] as { type: DiscountType; count: number; totalUsage: number; totalSavings: number }[]);
   }, [discounts]);
 
   return {

@@ -130,14 +130,16 @@ export async function fetchKitchenOrders(
       ).map((rawItem: RawOrderItem) => {
         const mappedItem = {
           id: rawItem.id,
-          name: rawItem.menu_item_name,
+          order_id: rawOrder.id,
+          menu_item_id: rawItem.menu_item_id,
+          menu_item_name: rawItem.menu_item_name,
           quantity: rawItem.quantity,
-          price: parseFloat(String(rawItem.unit_price)),
-          total: parseFloat(String(rawItem.subtotal)),
-          special_instructions: rawItem.special_requests || undefined,
+          unit_price: parseFloat(rawItem.unit_price),
+          subtotal: parseFloat(rawItem.subtotal),
+          special_requests: rawItem.special_requests,
         };
         console.log(
-          `   ✓ Mapped item: ${mappedItem.name} x${mappedItem.quantity} @ ₹${mappedItem.price}`
+          `   ✓ Mapped item: ${mappedItem.menu_item_name} x${mappedItem.quantity} @ ₹${mappedItem.unit_price}`
         );
         return mappedItem;
       });
@@ -155,21 +157,16 @@ export async function fetchKitchenOrders(
         id: rawOrder.id,
         tenant_id: rawOrder.tenant_id,
         table_id: rawOrder.table_id,
-        customer_name: `Table ${rawOrder.table_id}`,
         order_number: rawOrder.order_number,
         items,
         subtotal: rawOrder.subtotal,
-        tax: rawOrder.tax_amount,
-        tax_amount: rawOrder.tax_amount,
-        total_amount: rawOrder.total,
         discount_amount: rawOrder.discount_amount,
         discount_reason: rawOrder.discount_reason,
-        discount_percent: rawOrder.discount_percent,
+        tax_amount: rawOrder.tax_amount,
+        total: rawOrder.total,
         status: mapBackendStatusToFrontend(rawOrder.status),
-        payment_method: "cash",
-        notes: undefined,
+        payment_method: "CASH",
         created_at: rawOrder.created_at,
-        completed_at: null,
         updated_at: rawOrder.created_at,
       };
     };
@@ -302,13 +299,15 @@ export async function updateOrderStatus(
     console.log(`📝 Updating order ${orderId}: ${status} → ${backendStatus}`);
 
     // Get tenant_id from localStorage (set during staff login)
-    const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+    const tenantId =
+      localStorage.getItem("current_tenant_id") ||
+      "11111111-1111-1111-1111-111111111111";
     console.log(`🏢 Using tenant_id: ${tenantId}`);
 
     // Build request body
-    const body: Record<string, unknown> = { 
+    const body: Record<string, unknown> = {
       status: backendStatus,
-      tenant_id: tenantId
+      tenant_id: tenantId,
     };
 
     // When marking as SERVED or COMPLETED, also update payment status to COMPLETED
@@ -384,14 +383,16 @@ export async function cancelOrder(
     console.log(`📝 Reason: ${reason}`);
 
     // Get tenant_id from localStorage (set during staff login)
-    const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+    const tenantId =
+      localStorage.getItem("current_tenant_id") ||
+      "11111111-1111-1111-1111-111111111111";
     console.log(`🏢 Using tenant_id: ${tenantId}`);
 
     const response = await apiClient.patch<Order>(
       `/api/orders/${orderId}/cancel`,
-      { 
+      {
         reason,
-        tenant_id: tenantId
+        tenant_id: tenantId,
       }
     );
 

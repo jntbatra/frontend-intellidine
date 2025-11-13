@@ -27,7 +27,13 @@ interface Order {
   table_id: string;
   tenant_id: string;
   items: OrderItem[];
-  status: "pending" | "preparing" | "ready" | "served" | "completed" | "cancelled";
+  status:
+    | "pending"
+    | "preparing"
+    | "ready"
+    | "served"
+    | "completed"
+    | "cancelled";
   total_amount: number;
   created_at: string;
   updated_at: string;
@@ -42,7 +48,10 @@ export default function KitchenCompletedPage() {
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
     const role = localStorage.getItem("staff_role");
-    if (!token || (role !== "kitchen" && role !== "admin" && role !== "MANAGER")) {
+    if (
+      !token ||
+      (role !== "kitchen" && role !== "admin" && role !== "MANAGER")
+    ) {
       router.push("/staff/login");
     }
   }, [router]);
@@ -50,7 +59,9 @@ export default function KitchenCompletedPage() {
   const fetchOrders = useCallback(async () => {
     try {
       setIsLoading(true);
-      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+      const tenantId =
+        localStorage.getItem("current_tenant_id") ||
+        "11111111-1111-1111-1111-111111111111";
       const response = await apiClient.get(`/api/orders`, {
         limit: "100",
         offset: "0",
@@ -62,7 +73,7 @@ export default function KitchenCompletedPage() {
         allOrders = response.data;
       }
 
-      const completedOrders = allOrders.filter((o) => o.status === "COMPLETED");
+      const completedOrders = allOrders.filter((o) => o.status === "completed");
       setOrders(completedOrders);
     } catch {
       setOrders([]);
@@ -102,8 +113,12 @@ export default function KitchenCompletedPage() {
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="font-semibold">Order #{order.order_number}</h3>
-                      <p className="text-sm text-gray-600">Table {order.table_id}</p>
+                      <h3 className="font-semibold">
+                        Order #{order.order_number}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Table {order.table_id}
+                      </p>
                     </div>
                     <Badge variant="default">Completed</Badge>
                   </div>

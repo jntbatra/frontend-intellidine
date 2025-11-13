@@ -9,7 +9,13 @@ interface ServerOrderCardProps {
   order: Order;
   onStatusChange?: (
     orderId: string,
-    status: "PENDING" | "PREPARING" | "READY" | "SERVED" | "COMPLETED" | "CANCELLED"
+    status:
+      | "PENDING"
+      | "PREPARING"
+      | "READY"
+      | "SERVED"
+      | "COMPLETED"
+      | "CANCELLED"
   ) => void;
   onCancelOrder?: (orderId: string, reason: string) => void;
   isUpdating?: boolean;
@@ -123,13 +129,13 @@ export function ServerOrderCard({
               <li key={item.id} className="text-sm text-gray-800">
                 <div className="flex items-baseline justify-between">
                   <span className="font-medium">
-                    {item.name}{" "}
+                    {item.menu_item_name}{" "}
                     <span className="font-bold text-orange-600">
                       ×{item.quantity}
                     </span>
                   </span>
                   <span className="text-sm font-semibold text-green-600">
-                    ₹{(item.subtotal || item.total || 0).toFixed(2)}
+                    ₹{(Number(item.subtotal) || 0).toFixed(2)}
                   </span>
                 </div>
                 {item.special_instructions && (
@@ -169,7 +175,7 @@ export function ServerOrderCard({
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Tax (18%):</span>
           <span className="font-medium text-gray-800">
-            ₹{((order.tax_amount ?? order.tax ?? 0) || 0).toFixed(2)}
+            ₹{(order.tax_amount || 0).toFixed(2)}
           </span>
         </div>
 
@@ -179,7 +185,7 @@ export function ServerOrderCard({
             <span>Total:</span>
           </div>
           <span className="text-lg text-blue-600">
-            ₹{(order.total_amount || 0).toFixed(2)}
+            ₹{(order.total || 0).toFixed(2)}
           </span>
         </div>
       </div>

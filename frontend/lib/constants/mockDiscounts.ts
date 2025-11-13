@@ -62,7 +62,7 @@ export const MOCK_DISCOUNTS: Discount[] = [
     code: "SAVE100",
     name: "Flat ₹100 Off",
     description: "Flat ₹100 discount on orders above ₹500",
-    type: "fixed",
+    type: "fixed_amount",
     value: 100,
     status: "active",
     conditions: {
@@ -197,7 +197,7 @@ export const MOCK_DISCOUNTS: Discount[] = [
     type: "percentage",
     value: 50,
     max_discount: 1000,
-    status: "pending",
+    status: "scheduled",
     valid_from: "2025-12-15",
     valid_until: "2026-01-05",
     is_stackable: false,
@@ -213,7 +213,7 @@ export const MOCK_DISCOUNTS: Discount[] = [
     code: "REVIEW5",
     name: "Review & Rate Discount",
     description: "₹50 off for writing a review",
-    type: "fixed",
+    type: "fixed_amount",
     value: 50,
     status: "inactive",
     valid_from: "2025-09-01",
@@ -234,11 +234,14 @@ export const generateDiscountStats = (discounts: Discount[]): DiscountStats => {
   const inactive = discounts.filter((d) => d.status === "inactive");
   const expired = discounts.filter((d) => d.status === "expired");
 
-  const totalSavings = discounts.reduce((sum, d) => sum + d.total_savings, 0);
+  const totalSavings = discounts.reduce(
+    (sum, d) => sum + (d.total_savings || 0),
+    0
+  );
   const mostUsed =
     discounts.length > 0
       ? discounts.reduce((max, d) =>
-          d.usage_count > max.usage_count ? d : max
+          (d.usage_count || 0) > (max.usage_count || 0) ? d : max
         )
       : null;
 
@@ -246,12 +249,12 @@ export const generateDiscountStats = (discounts: Discount[]): DiscountStats => {
     const existing = acc.find((t) => t.type === d.type);
     if (existing) {
       existing.count++;
-      existing.savings += d.total_savings;
+      existing.savings += d.total_savings || 0;
     } else {
       acc.push({
         type: d.type,
         count: 1,
-        savings: d.total_savings,
+        savings: d.total_savings || 0,
       });
     }
     return acc;
@@ -262,10 +265,10 @@ export const generateDiscountStats = (discounts: Discount[]): DiscountStats => {
     active_discounts: active.length,
     inactive_discounts: inactive.length,
     expired_discounts: expired.length,
-    total_savings: totalSavings,
+    total_savings_given: totalSavings,
     most_used_discount: mostUsed,
     average_usage_per_discount: Math.round(
-      discounts.reduce((sum, d) => sum + d.usage_count, 0) / discounts.length
+      discounts.reduce((sum, d) => sum + (d.usage_count || 0), 0) / discounts.length
     ),
     top_discount_types: typeBreakdown.sort((a, b) => b.savings - a.savings),
   };
@@ -279,7 +282,7 @@ export const generateUsageTrend = (discount: Discount): DiscountUsageData[] => {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
 
-    const avgUsage = Math.floor(discount.usage_count / 30);
+    const avgUsage = Math.floor((discount.usage_count || 0) / 30);
     const variation = Math.floor(Math.random() * (avgUsage / 2));
     const count = Math.max(0, avgUsage - variation + Math.random() * variation);
 
@@ -311,17 +314,17 @@ export const getDiscountDetailStats = (
     discount,
     usage_trend: usageTrend,
     usage_by_customer: {
-      count: discount.active_users,
+      count: discount.active_users || 0,
       percentage:
-        discount.active_users > 0
-          ? Math.round((discount.active_users / 890) * 100) // Assuming 890 total customers
+        (discount.active_users || 0) > 0
+          ? Math.round(((discount.active_users || 0) / 890) * 100) // Assuming 890 total customers
           : 0,
     },
     revenue_impact: {
-      gross_revenue: avgOrderValue * discount.usage_count,
-      discount_amount: discount.total_savings,
+      gross_revenue: avgOrderValue * (discount.usage_count || 0),
+      discount_amount: discount.total_savings || 0,
       net_revenue:
-        avgOrderValue * discount.usage_count - discount.total_savings,
+        avgOrderValue * (discount.usage_count || 0) - (discount.total_savings || 0),
     },
   };
 };

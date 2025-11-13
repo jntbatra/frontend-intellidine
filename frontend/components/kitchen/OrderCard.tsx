@@ -9,7 +9,13 @@ import { ItemCutter } from "./ItemCutter";
 interface OrderCardProps {
   order: Order;
   onStatusChange?: (
-    status: "PENDING" | "PREPARING" | "READY" | "SERVED" | "COMPLETED" | "CANCELLED"
+    status:
+      | "PENDING"
+      | "PREPARING"
+      | "READY"
+      | "SERVED"
+      | "COMPLETED"
+      | "CANCELLED"
   ) => void;
   onCancel?: (reason: string) => void;
   isUpdating?: boolean;
@@ -146,7 +152,7 @@ export function OrderCard({
                 <li key={item.id} className="text-sm text-gray-800">
                   <div className="flex items-baseline justify-between">
                     <span className="font-medium">
-                      {item.name}{" "}
+                      {item.menu_item_name}{" "}
                       <span className="font-bold text-orange-600">
                         ×{item.quantity}
                       </span>

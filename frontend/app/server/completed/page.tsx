@@ -262,7 +262,7 @@ export default function CompletedOrdersPage() {
               <span className="font-bold text-emerald-600 ml-2">
                 ₹
                 {completedOrders
-                  .reduce((sum, o) => sum + o.total_amount, 0)
+                  .reduce((sum, o) => sum + o.total, 0)
                   .toFixed(2)}
               </span>
             </div>
@@ -294,7 +294,7 @@ export default function CompletedOrdersPage() {
                 orderId={order.id}
                 orderNumber={order.order_number}
                 tableId={order.table_id}
-                total={order.total_amount}
+                total={order.total}
                 paymentMethod={
                   (order.payment_method || null) as
                     | "cash"

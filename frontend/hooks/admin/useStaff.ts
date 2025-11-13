@@ -7,6 +7,7 @@ import {
   updateStaff,
   deleteStaff,
   StaffMember,
+  StaffListResponse,
   CreateStaffPayload,
   UpdateStaffPayload,
 } from "@/lib/api/admin/staff";
@@ -19,7 +20,8 @@ export function useStaffList(tenantId: string) {
       if (!response.success) {
         throw new Error(response.message || "Failed to fetch staff");
       }
-      return response.data as StaffMember[];
+      const data = response.data as StaffListResponse;
+      return data.staff || data.data || [];
     },
     enabled: !!tenantId,
   });
@@ -27,7 +29,7 @@ export function useStaffList(tenantId: string) {
 
 export function useCreateStaff() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (payload: CreateStaffPayload) => createStaff(payload),
     onSuccess: (response, variables) => {
@@ -42,7 +44,7 @@ export function useCreateStaff() {
 
 export function useUpdateStaff(tenantId: string) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({
       staffId,
@@ -61,7 +63,7 @@ export function useUpdateStaff(tenantId: string) {
 
 export function useDeleteStaff(tenantId: string) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (staffId: string) => deleteStaff(staffId, tenantId),
     onSuccess: () => {

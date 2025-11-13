@@ -2,28 +2,28 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getMenuItems,
+  getMenuWithCategories,
   getMenuItem,
-  getMenuCategories,
   createMenuItem,
   updateMenuItem,
-  updateMenuItemAvailability,
   deleteMenuItem,
   MenuItem,
   MenuCategory,
   CreateMenuItemPayload,
   UpdateMenuItemPayload,
 } from "@/lib/api/admin/menu";
+import { ApiResponse } from "@/lib/api/client";
 
 export function useMenuCategories(tenantId: string) {
   return useQuery({
     queryKey: ["menu-categories", tenantId],
     queryFn: async () => {
-      const response = await getMenuCategories(tenantId);
+      const response = await getMenuWithCategories(tenantId);
       if (!response.success) {
         throw new Error(response.message || "Failed to fetch categories");
       }
-      return response.data as MenuCategory[];
+      const data = response.data as { categories?: MenuCategory[] };
+      return (data.categories || []) as MenuCategory[];
     },
     enabled: !!tenantId,
   });
@@ -33,11 +33,12 @@ export function useMenuItems(tenantId: string, category?: string) {
   return useQuery({
     queryKey: ["menu-items", tenantId, category],
     queryFn: async () => {
-      const response = await getMenuItems(tenantId, category);
+      const response = await getMenuWithCategories(tenantId);
       if (!response.success) {
         throw new Error(response.message || "Failed to fetch menu items");
       }
-      return response.data as MenuItem[];
+      const data = response.data as { items?: MenuItem[]; data?: MenuItem[] };
+      return (data.items || data.data || []) as MenuItem[];
     },
     enabled: !!tenantId,
   });
@@ -85,7 +86,7 @@ export function useUpdateMenuItem() {
       payload: UpdateMenuItemPayload;
       tenantId: string;
     }) => updateMenuItem(itemId, payload, tenantId),
-    onSuccess: (response, variables) => {
+    onSuccess: (response: ApiResponse<MenuItem>, variables) => {
       if (response.success) {
         queryClient.invalidateQueries({
           queryKey: ["menu-items", variables.tenantId],
@@ -110,7 +111,7 @@ export function useUpdateMenuItemAvailability() {
       itemId: string;
       isAvailable: boolean;
       tenantId: string;
-    }) => updateMenuItemAvailability(itemId, isAvailable, tenantId),
+    }) => updateMenuItem(itemId, { is_available: isAvailable }, tenantId),
     onSuccess: (response, variables) => {
       if (response.success) {
         queryClient.invalidateQueries({
@@ -125,14 +126,9 @@ export function useDeleteMenuItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      itemId,
-      tenantId,
-    }: {
-      itemId: string;
-      tenantId: string;
-    }) => deleteMenuItem(itemId, tenantId),
-    onSuccess: (response, variables) => {
+    mutationFn: ({ itemId, tenantId }: { itemId: string; tenantId: string }) =>
+      deleteMenuItem(itemId, tenantId),
+    onSuccess: (response: ApiResponse<{ message: string }>, variables) => {
       if (response.success) {
         queryClient.invalidateQueries({
           queryKey: ["menu-items", variables.tenantId],

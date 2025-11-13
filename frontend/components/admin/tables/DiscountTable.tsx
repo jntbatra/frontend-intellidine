@@ -61,7 +61,9 @@ export function DiscountTable({
 
   const getUsagePercentage = (discount: Discount) => {
     if (!discount.usage_limit) return 0;
-    return Math.round((discount.usage_count / discount.usage_limit) * 100);
+    return Math.round(
+      ((discount.usage_count || 0) / discount.usage_limit) * 100
+    );
   };
 
   if (isLoading) {
@@ -110,7 +112,7 @@ export function DiscountTable({
                   {discount.name}
                 </div>
                 <div className="text-xs text-slate-500">
-                  {discount.description.substring(0, 40)}...
+                  {(discount.description || "").substring(0, 40)}...
                 </div>
               </TableCell>
               <TableCell>
@@ -122,7 +124,7 @@ export function DiscountTable({
               <TableCell className="font-semibold">
                 {discount.type === "percentage" ? (
                   <span className="text-orange-600">{discount.value}%</span>
-                ) : discount.type === "fixed" ? (
+                ) : discount.type === "fixed_amount" ? (
                   <span className="text-green-600">₹{discount.value}</span>
                 ) : (
                   <span className="text-blue-600">{discount.value}% off</span>
@@ -154,7 +156,9 @@ export function DiscountTable({
                 </div>
               </TableCell>
               <TableCell className="font-semibold">
-                <span className="text-green-600">₹{discount.total_savings}</span>
+                <span className="text-green-600">
+                  ₹{discount.total_savings}
+                </span>
               </TableCell>
               <TableCell className="text-sm">
                 {new Date(discount.valid_until).toLocaleDateString()}
