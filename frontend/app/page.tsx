@@ -212,19 +212,6 @@ export default function Home() {
                     <QrCode className="ml-3 h-6 w-6" />
                   </Button>
                 </Link>
-                <div>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      localStorage.removeItem("current_table_id");
-                      localStorage.removeItem("current_tenant_id");
-                      window.location.reload();
-                    }}
-                    className="text-sm text-gray-600 hover:text-gray-800"
-                  >
-                    Scan New QR Code
-                  </Button>
-                </div>
               </div>
               <p className="text-sm text-gray-500 mt-4">
                 Experience the full restaurant ordering system with AI-powered
@@ -234,11 +221,24 @@ export default function Home() {
           </Card>
 
           {/* Footer */}
-          <div className="text-center text-sm text-gray-500">
-            <p>© 2025 Intellidine • Built with Next.js, TypeScript, and AI</p>
-            <p className="mt-1">
-              Revolutionizing restaurant ordering for the digital age
-            </p>
+          <div className="text-center text-sm text-gray-500 space-y-4">
+            <div>
+              <p>© 2025 Intellidine • Built with Next.js, TypeScript, and AI</p>
+              <p className="mt-1">
+                Revolutionizing restaurant ordering for the digital age
+              </p>
+            </div>
+            <div className="pt-4 border-t border-gray-300">
+              <Link href="/staff/login">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs text-gray-600 hover:text-gray-800"
+                >
+                  Staff Login
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

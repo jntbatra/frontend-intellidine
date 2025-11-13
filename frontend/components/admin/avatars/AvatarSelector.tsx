@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -92,7 +93,7 @@ export function AvatarSelector({
   return (
     <>
       <Button
-        className="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold"
+        className="w-full bg-white hover:bg-amber-400 border border-slate-200 text-slate-900 font-semibold transition-colors"
         onClick={() => setIsOpen(true)}
         disabled={isLoading}
       >

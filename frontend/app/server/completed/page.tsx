@@ -127,7 +127,7 @@ export default function CompletedOrdersPage() {
   }, []);
 
   // Get completed orders
-  const completedOrders = orders.filter((o) => o.status === "completed");
+  const completedOrders = orders.filter((o) => o.status === "COMPLETED");
 
   const handlePaymentSelect = async (
     orderId: string,

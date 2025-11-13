@@ -90,9 +90,15 @@ export async function fetchCustomerOrders(
     }
   );
 
+  console.log("[fetchCustomerOrders] URL:", `${process.env.NEXT_PUBLIC_API_URL}/api/customers/my-orders?${queryParams.toString()}`);
+  console.log("[fetchCustomerOrders] Headers:", headers);
+  console.log("[fetchCustomerOrders] Response status:", response.status);
+  
   if (!response.ok) {
+    const errorText = await response.text();
+    console.log("[fetchCustomerOrders] Error response:", errorText);
     throw new Error(
-      `Failed to fetch customer orders: ${response.status} ${response.statusText}`
+      `Failed to fetch customer orders: ${response.status} ${response.statusText} - ${errorText}`
     );
   }
 

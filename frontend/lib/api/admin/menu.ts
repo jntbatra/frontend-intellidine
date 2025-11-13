@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api/client";
+import { apiClient, ApiResponse } from "@/lib/api/client";
 
 export interface MenuItem {
   id: string;
@@ -6,13 +6,19 @@ export interface MenuItem {
   name: string;
   description?: string;
   price: number;
+  cost_price?: number;
   category: string;
+  category_id?: string;
   image_url?: string;
-  is_vegetarian: boolean;
+  is_vegetarian?: boolean;
   is_available: boolean;
-  preparation_time_minutes: number;
-  allergens?: string[];
-  tags?: string[];
+  stock_level?: number;
+  stock_status?: "AVAILABLE" | "LOW_STOCK" | "OUT_OF_STOCK";
+  preparation_time: number;
+  preparation_time_minutes?: number;
+  dietary_tags?: string[];
+  discount_percentage?: number;
+  reorder_level?: number;
   created_at: string;
   updated_at: string;
 }
@@ -22,7 +28,7 @@ export interface MenuCategory {
   name: string;
   display_order: number;
   icon_url?: string;
-  item_count: number;
+  items: MenuItem[];
 }
 
 export interface MenuItemVariant {
@@ -39,13 +45,14 @@ export interface CreateMenuItemPayload {
   name: string;
   description?: string;
   price: number;
+  cost_price?: number;
   category: string;
-  is_vegetarian: boolean;
-  preparation_time_minutes: number;
+  is_vegetarian?: boolean;
+  preparation_time?: number;
   image_url?: string;
-  variants?: MenuItemVariant[];
-  allergens?: string[];
-  tags?: string[];
+  available?: boolean;
+  reorder_level?: number;
+  dietary_tags?: string[];
   tenant_id: string;
 }
 
@@ -53,80 +60,89 @@ export interface UpdateMenuItemPayload {
   name?: string;
   description?: string;
   price?: number;
+  cost_price?: number;
   category?: string;
   is_vegetarian?: boolean;
-  preparation_time_minutes?: number;
+  preparation_time?: number;
   image_url?: string;
-  variants?: MenuItemVariant[];
-  allergens?: string[];
-  tags?: string[];
+  is_available?: boolean;
+  stock_status?: "AVAILABLE" | "LOW_STOCK" | "OUT_OF_STOCK";
+  reorder_level?: number;
+  dietary_tags?: string[];
+  tenant_id?: string;
 }
 
-// Get all categories
-export async function getMenuCategories(tenantId: string) {
-  const response = await apiClient.get(
-    `/api/menu/categories?tenant_id=${tenantId}`
-  );
-  return response;
+export interface MenuResponse {
+  categories: MenuCategory[];
+  items?: MenuItem[];
+  data?: MenuItem[];
+  total?: number;
+  limit?: number;
+  offset?: number;
+  [key: string]: unknown;
 }
 
-// Get all menu items
-export async function getMenuItems(tenantId: string, category?: string) {
-  let url = `/api/menu/items?tenant_id=${tenantId}`;
-  if (category) {
-    url += `&category=${category}`;
+/**
+ * Get menu with categories and items
+ * GET /api/menu?tenant_id={{tenant_id}}&limit=20&offset=0
+ */
+export async function getMenuWithCategories(
+  tenantId: string,
+  limit: number = 20,
+  offset: number = 0
+): Promise<ApiResponse<MenuResponse>> {
+  const url = `/api/menu?tenant_id=${tenantId}&limit=${limit}&offset=${offset}`;
+  return apiClient.get<MenuResponse>(url);
+}
+
+/**
+ * Delete menu item
+ * DELETE /api/menu/items/{itemId}
+ */
+export async function deleteMenuItem(
+  itemId: string,
+  tenantId?: string
+): Promise<ApiResponse<{ message: string }>> {
+  let url = `/api/menu/items/${itemId}`;
+  if (tenantId) {
+    url += `?tenant_id=${tenantId}`;
   }
-  const response = await apiClient.get(url);
-  return response;
+  return apiClient.delete(url);
 }
 
-// Get single menu item
-export async function getMenuItem(itemId: string, tenantId: string) {
-  const response = await apiClient.get(
-    `/api/menu/items/${itemId}?tenant_id=${tenantId}`
-  );
-  return response;
-}
-
-// Create menu item
-export async function createMenuItem(payload: CreateMenuItemPayload) {
-  const response = await apiClient.post("/api/menu/items", payload);
-  return response;
-}
-
-// Update menu item
+/**
+ * Update menu item (toggle availability or full edit)
+ * PATCH /api/menu/items/{itemId}
+ */
 export async function updateMenuItem(
   itemId: string,
   payload: UpdateMenuItemPayload,
-  tenantId: string
-) {
-  const response = await apiClient.put(`/api/menu/items/${itemId}`, {
-    ...payload,
-    tenant_id: tenantId,
-  });
-  return response;
+  tenantId?: string
+): Promise<ApiResponse<MenuItem>> {
+  let url = `/api/menu/items/${itemId}`;
+  if (tenantId) {
+    url += `?tenant_id=${tenantId}`;
+  }
+  return apiClient.patch<MenuItem>(url, payload);
 }
 
-// Update item availability
-export async function updateMenuItemAvailability(
+/**
+ * Get single menu item
+ * GET /api/menu/items/{itemId}?tenant_id={{tenant_id}}
+ */
+export async function getMenuItem(
   itemId: string,
-  isAvailable: boolean,
   tenantId: string
-) {
-  const response = await apiClient.patch(
-    `/api/menu/items/${itemId}/availability`,
-    {
-      is_available: isAvailable,
-      tenant_id: tenantId,
-    }
-  );
-  return response;
+): Promise<ApiResponse<MenuItem>> {
+  return apiClient.get<MenuItem>(`/api/menu/items/${itemId}?tenant_id=${tenantId}`);
 }
 
-// Delete menu item
-export async function deleteMenuItem(itemId: string, tenantId: string) {
-  const response = await apiClient.delete(
-    `/api/menu/items/${itemId}?tenant_id=${tenantId}`
-  );
-  return response;
+/**
+ * Create menu item
+ * POST /api/menu/items
+ */
+export async function createMenuItem(
+  payload: CreateMenuItemPayload
+): Promise<ApiResponse<MenuItem>> {
+  return apiClient.post<MenuItem>(`/api/menu/items`, payload);
 }

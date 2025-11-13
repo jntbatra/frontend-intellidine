@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StaffMember } from "@/lib/api/admin/staff";
 
 // Hardcoded staff data for testing

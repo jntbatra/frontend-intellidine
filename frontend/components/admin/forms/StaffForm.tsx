@@ -28,7 +28,7 @@ export interface StaffFormData {
   email: string;
   phone?: string;
   password?: string;
-  role: "MANAGER" | "KITCHEN_STAFF" | "WAITER" | "STAFF";
+  role: "MANAGER" | "KITCHEN_STAFF" | "WAITER";
   is_active?: boolean;
 }
 
@@ -48,7 +48,7 @@ export function StaffForm({
   } = useForm<StaffFormData>({
     defaultValues: {
       ...initialData,
-      role: initialData?.role || "STAFF",
+      role: initialData?.role || "WAITER",
       is_active: initialData?.is_active ?? true,
     },
   });
@@ -152,7 +152,7 @@ export function StaffForm({
       <div>
         <Label htmlFor="role">Role *</Label>
         <Select
-          defaultValue={initialData?.role || "STAFF"}
+          defaultValue={initialData?.role || "WAITER"}
           onValueChange={(value) => {
             register("role").onChange({
               target: { value },
@@ -163,7 +163,6 @@ export function StaffForm({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="STAFF">Staff</SelectItem>
             <SelectItem value="KITCHEN_STAFF">Kitchen Staff</SelectItem>
             <SelectItem value="WAITER">Waiter</SelectItem>
             <SelectItem value="MANAGER">Manager</SelectItem>

@@ -377,7 +377,7 @@ export default function ProfilePage() {
                   <Button
                     onClick={handleSaveProfile}
                     disabled={isSaving}
-                    className="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold"
+                    className="w-full bg-white hover:bg-amber-400 border border-slate-200 text-slate-900 font-semibold transition-colors"
                   >
                     {isSaving ? "Saving..." : "💾 Save Changes"}
                   </Button>
@@ -471,7 +471,7 @@ export default function ProfilePage() {
                 <Button
                   type="submit"
                   disabled={isSaving}
-                  className="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold"
+                  className="w-full bg-white hover:bg-amber-400 border border-slate-200 text-slate-900 font-semibold transition-colors"
                 >
                   {isSaving ? "Updating..." : "🔐 Change Password"}
                 </Button>
@@ -506,7 +506,7 @@ export default function ProfilePage() {
           <Button
             onClick={handleSaveSettings}
             disabled={isSaving}
-            className="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold"
+            className="w-full bg-white hover:bg-amber-400 border border-slate-200 text-slate-900 font-semibold transition-colors"
           >
             {isSaving ? "Saving..." : "💾 Save Security Settings"}
           </Button>

@@ -9,7 +9,7 @@ interface ServerOrderCardProps {
   order: Order;
   onStatusChange?: (
     orderId: string,
-    status: "in_preparation" | "ready" | "served" | "completed"
+    status: "PENDING" | "PREPARING" | "READY" | "SERVED" | "COMPLETED" | "CANCELLED"
   ) => void;
   onCancelOrder?: (orderId: string, reason: string) => void;
   isUpdating?: boolean;
@@ -29,23 +29,19 @@ export function ServerOrderCard({
   const [cancelReason, setCancelReason] = React.useState("");
 
   const getNextStatus = () => {
-    if (order.status === "pending") return "in_preparation";
-    if (order.status === "in_preparation") return "ready";
-    if (order.status === "ready") return "served";
-    if (order.status === "served") return "completed";
+    if (order.status === "READY") return "SERVED";
+    if (order.status === "SERVED") return "COMPLETED";
     return null;
   };
 
   const getStatusBadgeColor = () => {
     switch (order.status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
-      case "in_preparation":
-        return "bg-blue-100 text-blue-800 border-blue-300";
-      case "ready":
+      case "READY":
         return "bg-green-100 text-green-800 border-green-300";
-      case "served":
+      case "SERVED":
         return "bg-purple-100 text-purple-800 border-purple-300";
+      case "COMPLETED":
+        return "bg-emerald-100 text-emerald-800 border-emerald-300";
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
@@ -53,14 +49,12 @@ export function ServerOrderCard({
 
   const getStatusLabel = () => {
     switch (order.status) {
-      case "pending":
-        return "New Order";
-      case "in_preparation":
-        return "In Progress";
-      case "ready":
+      case "READY":
         return "Ready for Pickup";
-      case "served":
+      case "SERVED":
         return "Served to Table";
+      case "COMPLETED":
+        return "Order Completed";
       default:
         return order.status;
     }
@@ -69,14 +63,10 @@ export function ServerOrderCard({
   const getNextStatusLabel = () => {
     const nextStatus = getNextStatus();
     switch (nextStatus) {
-      case "in_preparation":
-        return "Start Preparing";
-      case "ready":
-        return "Mark Ready";
-      case "served":
-        return "Mark as Served";
-      case "completed":
-        return "Complete Order";
+      case "SERVED":
+        return "✓ Mark as Served";
+      case "COMPLETED":
+        return "✓ Complete Order & Payment";
       default:
         return null;
     }
@@ -84,13 +74,9 @@ export function ServerOrderCard({
 
   const getActionButtonColor = () => {
     switch (order.status) {
-      case "pending":
-        return "bg-yellow-500 hover:bg-yellow-600";
-      case "in_preparation":
-        return "bg-blue-500 hover:bg-blue-600";
-      case "ready":
+      case "READY":
         return "bg-green-500 hover:bg-green-600";
-      case "served":
+      case "SERVED":
         return "bg-purple-500 hover:bg-purple-600";
       default:
         return "bg-gray-500 hover:bg-gray-600";

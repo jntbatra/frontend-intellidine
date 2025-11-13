@@ -1,12 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { OrderColumn } from "./OrderColumn";
 import {
   useKitchenOrders,
   groupOrdersByStatus,
 } from "@/hooks/use-kitchen-orders";
-import { AlertCircle, RefreshCw, Pause, Play, XCircle } from "lucide-react";
+import { AlertCircle, RefreshCw, Pause, Play, XCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import type { OrderStatus } from "@/lib/api/admin/orders";
@@ -16,6 +17,25 @@ interface KitchenOrderBoardProps {
 }
 
 export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
+  const router = useRouter();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Get user role from localStorage
+    const role = localStorage.getItem("staff_role");
+    setUserRole(role);
+  }, []);
+
+  const handleLogout = () => {
+    // Clear authentication data
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("staff_role");
+    localStorage.removeItem("current_tenant_id");
+    
+    // Redirect to login
+    router.push("/staff/login");
+  };
+
   const {
     orders,
     isLoading,
@@ -77,6 +97,22 @@ export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
 
           {/* Control Panel */}
           <div className="flex gap-2">
+            {/* Waiter Dashboard Button */}
+            <Link href="/server">
+              <Button variant="outline" className="gap-2" size="lg">
+                Waiter Dashboard
+              </Button>
+            </Link>
+
+            {/* Admin Panel Button - Only for MANAGER */}
+            {userRole === "MANAGER" && (
+              <Link href="/admin/staff">
+                <Button variant="outline" className="gap-2" size="lg">
+                  Admin Panel
+                </Button>
+              </Link>
+            )}
+
             <Button
               onClick={manualRefresh}
               disabled={isLoading}
@@ -115,6 +151,16 @@ export function KitchenOrderBoard({ tenantId }: KitchenOrderBoardProps) {
                 Cancelled Orders
               </Button>
             </Link>
+
+            <Button
+              onClick={handleLogout}
+              variant="destructive"
+              className="gap-2"
+              size="lg"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
           </div>
         </div>
 
