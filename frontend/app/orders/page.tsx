@@ -32,17 +32,17 @@ export default function OrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
-  // Authentication check
+  // Authentication check - required to extract customer_id from JWT
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
-    const role = localStorage.getItem("staff_role");
 
-    if (!token || role === "kitchen") {
-      router.push("/");
+    if (!token) {
+      // Redirect to OTP page for authentication
+      router.push(`/auth/otp?table_id=${tenantId}&tenant_id=${tenantId}`);
       return;
     }
     setIsReady(true);
-  }, [router]);
+  }, [router, tenantId]);
 
   // Initialize hook
   const {

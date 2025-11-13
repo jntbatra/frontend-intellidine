@@ -160,9 +160,9 @@ export function groupOrdersByStatus(orders: Order[] | undefined) {
     };
   }
   return {
-    pending: orders.filter((o) => o.status === "pending"),
-    preparing: orders.filter((o) => o.status === "in_preparation"),
-    ready: orders.filter((o) => o.status === "ready"),
+    pending: orders.filter((o) => o.status === "PENDING"),
+    preparing: orders.filter((o) => o.status === "PREPARING"),
+    ready: orders.filter((o) => o.status === "READY"),
   };
 }
 

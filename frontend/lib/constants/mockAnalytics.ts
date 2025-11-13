@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AnalyticsMetrics, RevenueDatum, PopularItem } from "@/lib/api/admin/analytics";
 
 // Generate last 30 days of data

@@ -67,6 +67,7 @@ export async function fetchCustomerOrders(
   };
 
   const token = localStorage.getItem("auth_token");
+  console.log("[fetchCustomerOrders] Token from localStorage:", token ? "✅ Found" : "❌ Missing");
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
@@ -81,12 +82,21 @@ export async function fetchCustomerOrders(
     }
   );
 
+  console.log("[fetchCustomerOrders] URL:", `${process.env.NEXT_PUBLIC_API_URL}/api/customers/my-orders?${queryParams.toString()}`);
+  console.log("[fetchCustomerOrders] Headers:", headers);
+  console.log("[fetchCustomerOrders] Response status:", response.status);
+  
   if (!response.ok) {
+    const errorText = await response.text();
+    console.log("[fetchCustomerOrders] Error response:", errorText);
     throw new Error(
-      `Failed to fetch customer orders: ${response.status} ${response.statusText}`
+      `Failed to fetch customer orders: ${response.status} ${response.statusText} - ${errorText}`
     );
   }
 
   const data = await response.json();
+  console.log("[fetchCustomerOrders] Full response data:", data);
+  console.log("[fetchCustomerOrders] data.data structure:", data?.data);
+  console.log("[fetchCustomerOrders] Orders count:", data?.data?.data?.length || 0);
   return data.data;
 }

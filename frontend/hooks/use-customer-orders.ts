@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import {
   fetchCustomerOrders,
   type MyOrdersParams,
+  type MyOrdersResponse,
 } from "@/lib/api/customer/orders";
 
 const CUSTOMER_ORDERS_QUERY_KEY = ["customer-orders"];
@@ -39,12 +40,24 @@ export function useCustomerOrders(
     offset: (currentPage - 1) * limit,
   };
 
+  console.log("[useCustomerOrders] Initializing with tenantId:", tenantId, "enabled:", enabled && !!tenantId);
+
   // Fetch customer orders
   const ordersQuery = useQuery({
     queryKey: [...CUSTOMER_ORDERS_QUERY_KEY, tenantId, currentPage, limit],
-    queryFn: () => fetchCustomerOrders(params),
+    queryFn: () => {
+      console.log("[useCustomerOrders] Calling fetchCustomerOrders with params:", params);
+      return fetchCustomerOrders(params);
+    },
     enabled: enabled && !!tenantId,
     staleTime: 30000, // 30 seconds
+  });
+
+  console.log("[useCustomerOrders] Query state:", { 
+    isLoading: ordersQuery.isLoading, 
+    isError: ordersQuery.isError, 
+    data: ordersQuery.data,
+    error: ordersQuery.error
   });
 
   // Manual refetch
@@ -72,8 +85,8 @@ export function useCustomerOrders(
   }, []);
 
   return {
-    orders: ordersQuery.data?.data || [],
-    total: ordersQuery.data?.total || 0,
+    orders: (ordersQuery.data as MyOrdersResponse)?.data || [],
+    total: (ordersQuery.data as MyOrdersResponse)?.total || 0,
     page: currentPage,
     limit,
     isLoading: ordersQuery.isLoading,
@@ -83,7 +96,7 @@ export function useCustomerOrders(
     goToNextPage,
     goToPreviousPage,
     resetPagination,
-    hasNextPage: currentPage * limit < (ordersQuery.data?.total || 0),
+    hasNextPage: currentPage * limit < ((ordersQuery.data as MyOrdersResponse)?.total || 0),
     hasPreviousPage: currentPage > 1,
   };
 }
@@ -96,38 +109,41 @@ export function getOrderStatusColor(status: string): {
   text: string;
   border: string;
 } {
-  switch (status.toLowerCase()) {
-    case "pending":
+  const normalizedStatus = status.toUpperCase();
+  
+  switch (normalizedStatus) {
+    case "PENDING":
       return {
         bg: "bg-yellow-100",
         text: "text-yellow-800",
         border: "border-yellow-300",
       };
-    case "in_preparation":
+    case "PREPARING":
+    case "IN_PREPARATION":
       return {
         bg: "bg-blue-100",
         text: "text-blue-800",
         border: "border-blue-300",
       };
-    case "ready":
+    case "READY":
       return {
         bg: "bg-green-100",
         text: "text-green-800",
         border: "border-green-300",
       };
-    case "served":
+    case "SERVED":
       return {
         bg: "bg-purple-100",
         text: "text-purple-800",
         border: "border-purple-300",
       };
-    case "completed":
+    case "COMPLETED":
       return {
         bg: "bg-emerald-100",
         text: "text-emerald-800",
         border: "border-emerald-300",
       };
-    case "cancelled":
+    case "CANCELLED":
       return {
         bg: "bg-red-100",
         text: "text-red-800",
@@ -147,6 +163,13 @@ export function getOrderStatusColor(status: string): {
  */
 export function formatOrderStatus(status: string): string {
   const statusMap: Record<string, string> = {
+    PENDING: "Pending",
+    PREPARING: "Preparing",
+    IN_PREPARATION: "Preparing",
+    READY: "Ready",
+    SERVED: "Served",
+    COMPLETED: "Completed",
+    CANCELLED: "Cancelled",
     pending: "Pending",
     in_preparation: "Preparing",
     ready: "Ready",
@@ -154,5 +177,5 @@ export function formatOrderStatus(status: string): string {
     completed: "Completed",
     cancelled: "Cancelled",
   };
-  return statusMap[status.toLowerCase()] || status;
+  return statusMap[status] || status;
 }

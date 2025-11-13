@@ -9,7 +9,7 @@ import { ItemCutter } from "./ItemCutter";
 interface OrderCardProps {
   order: Order;
   onStatusChange?: (
-    status: "in_preparation" | "ready" | "served" | "completed"
+    status: "PENDING" | "PREPARING" | "READY" | "SERVED" | "COMPLETED" | "CANCELLED"
   ) => void;
   onCancel?: (reason: string) => void;
   isUpdating?: boolean;
@@ -29,23 +29,27 @@ export function OrderCard({
   const [cancelReason, setCancelReason] = React.useState("");
 
   const getNextStatus = () => {
-    if (order.status === "pending") return "in_preparation";
-    if (order.status === "in_preparation") return "ready";
-    if (order.status === "ready") return "served";
-    if (order.status === "served") return "completed";
+    if (order.status === "PENDING") return "PREPARING";
+    if (order.status === "PREPARING") return "READY";
+    if (order.status === "READY") return "SERVED";
+    if (order.status === "SERVED") return "COMPLETED";
     return null;
   };
 
   const getStatusBadgeColor = () => {
     switch (order.status) {
-      case "pending":
+      case "PENDING":
         return "bg-yellow-100 text-yellow-800 border-yellow-300";
-      case "in_preparation":
+      case "PREPARING":
         return "bg-blue-100 text-blue-800 border-blue-300";
-      case "ready":
+      case "READY":
         return "bg-green-100 text-green-800 border-green-300";
-      case "served":
+      case "SERVED":
         return "bg-purple-100 text-purple-800 border-purple-300";
+      case "COMPLETED":
+        return "bg-emerald-100 text-emerald-800 border-emerald-300";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800 border-red-300";
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
@@ -53,14 +57,18 @@ export function OrderCard({
 
   const getStatusLabel = () => {
     switch (order.status) {
-      case "pending":
+      case "PENDING":
         return "New Order";
-      case "in_preparation":
+      case "PREPARING":
         return "In Progress";
-      case "ready":
+      case "READY":
         return "Ready for Pickup";
-      case "served":
+      case "SERVED":
         return "Served to Table";
+      case "COMPLETED":
+        return "Order Completed";
+      case "CANCELLED":
+        return "Order Cancelled";
       default:
         return order.status;
     }
@@ -69,13 +77,13 @@ export function OrderCard({
   const getNextStatusLabel = () => {
     const nextStatus = getNextStatus();
     switch (nextStatus) {
-      case "in_preparation":
+      case "PREPARING":
         return "Start Preparing";
-      case "ready":
+      case "READY":
         return "Mark Ready";
-      case "served":
+      case "SERVED":
         return "Mark as Served";
-      case "completed":
+      case "COMPLETED":
         return "Complete Order";
       default:
         return null;
@@ -84,13 +92,13 @@ export function OrderCard({
 
   const getActionButtonColor = () => {
     switch (order.status) {
-      case "pending":
+      case "PENDING":
         return "bg-yellow-500 hover:bg-yellow-600";
-      case "in_preparation":
+      case "PREPARING":
         return "bg-blue-500 hover:bg-blue-600";
-      case "ready":
+      case "READY":
         return "bg-green-500 hover:bg-green-600";
-      case "served":
+      case "SERVED":
         return "bg-purple-500 hover:bg-purple-600";
       default:
         return "bg-gray-500 hover:bg-gray-600";
@@ -127,7 +135,7 @@ export function OrderCard({
       </div>
 
       {/* Items List - Hide in preparing tab */}
-      {order.status !== "in_preparation" && (
+      {order.status !== "PREPARING" && (
         <div className="mb-4 bg-gray-50 rounded p-3 border border-gray-200">
           <h4 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
             Items ({order.items?.length || 0})
@@ -159,7 +167,7 @@ export function OrderCard({
       )}
 
       {/* Item Cutter - Show only when in preparation */}
-      {order.status === "in_preparation" &&
+      {order.status === "PREPARING" &&
         order.items &&
         order.items.length > 0 && (
           <div className="mb-4">

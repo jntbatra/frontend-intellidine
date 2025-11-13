@@ -4,7 +4,6 @@ import React from "react";
 import { ServerOrderCard } from "./ServerOrderCard";
 import {
   useKitchenOrders,
-  groupOrdersByStatus,
 } from "@/hooks/use-kitchen-orders";
 import {
   AlertCircle,
@@ -37,14 +36,11 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
     manualRefresh,
   } = useKitchenOrders(tenantId);
 
-  // Group orders by status
-  const groupedOrders = groupOrdersByStatus(orders);
+  // Get ready orders for server display (filter by READY status)
+  const readyOrders = orders.filter((o) => o.status === "READY");
 
-  // Get served orders (filter by served status)
-  const servedOrders = orders.filter((o) => o.status === "served");
-
-  // Get ready orders for server display
-  const readyOrders = groupedOrders.ready || [];
+  // Get served orders - waiting for completion/payment (filter by SERVED status)
+  const servedOrders = orders.filter((o) => o.status === "SERVED");
 
   const handleOrderStatusChange = (orderId: string, status: OrderStatus) => {
     updateOrderStatus({ orderId, status });
@@ -153,19 +149,13 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
             <div>
               <span className="text-gray-600">Total Orders:</span>
               <span className="font-bold text-gray-900 ml-2">
-                {readyOrders.length + servedOrders.length}
+                {readyOrders.length}
               </span>
             </div>
             <div>
               <span className="text-gray-600">Ready:</span>
               <span className="font-bold text-green-600 ml-2">
                 {readyOrders.length}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-600">Served:</span>
-              <span className="font-bold text-purple-600 ml-2">
-                {servedOrders.length}
               </span>
             </div>
           </div>
@@ -186,11 +176,11 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Ready Orders Column */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Ready for Serving Column */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 p-3 bg-green-50 rounded border-l-4 border-green-600">
-              🟢 Ready for Pickup ({readyOrders.length})
+              🟢 Ready for Serving ({readyOrders.length})
             </h2>
             {readyOrders.length > 0 ? (
               <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
@@ -207,15 +197,15 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
               </div>
             ) : (
               <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <p className="text-gray-500">No orders ready for pickup</p>
+                <p className="text-gray-500">No orders ready for serving</p>
               </div>
             )}
           </div>
 
-          {/* Served Orders Column */}
+          {/* Ready for Completing Column */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4 p-3 bg-purple-50 rounded border-l-4 border-purple-600">
-              🟣 Served to Table ({servedOrders.length})
+              💜 Ready for Completing ({servedOrders.length})
             </h2>
             {servedOrders.length > 0 ? (
               <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
@@ -232,7 +222,7 @@ export function ServerOrderBoard({ tenantId }: ServerOrderBoardProps) {
               </div>
             ) : (
               <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <p className="text-gray-500">No orders being served yet</p>
+                <p className="text-gray-500">No orders ready for completing</p>
               </div>
             )}
           </div>

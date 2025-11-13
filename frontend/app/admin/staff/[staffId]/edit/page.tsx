@@ -6,87 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { StaffForm, StaffFormData } from "@/components/admin/forms/StaffForm";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { StaffMember } from "@/lib/api/admin/staff";
-
-// Mock data inline
-const MOCK_STAFF: StaffMember[] = [
-  {
-    id: "staff-1",
-    username: "raj_kitchen",
-    email: "raj@spiceroute.com",
-    phone: "9876543210",
-    role: "KITCHEN_STAFF",
-    is_active: true,
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    created_at: "2024-10-15T10:30:00Z",
-    updated_at: "2024-11-01T08:00:00Z",
-  },
-  {
-    id: "staff-2",
-    username: "priya_manager",
-    email: "priya@spiceroute.com",
-    phone: "9876543211",
-    role: "MANAGER",
-    is_active: true,
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    created_at: "2024-09-20T14:15:00Z",
-    updated_at: "2024-11-05T09:45:00Z",
-  },
-  {
-    id: "staff-3",
-    username: "amit_waiter",
-    email: "amit@spiceroute.com",
-    phone: "9876543212",
-    role: "WAITER",
-    is_active: true,
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    created_at: "2024-10-01T11:20:00Z",
-    updated_at: "2024-11-03T07:30:00Z",
-  },
-  {
-    id: "staff-4",
-    username: "deepak_staff",
-    email: "deepak@spiceroute.com",
-    phone: "9876543213",
-    role: "STAFF",
-    is_active: false,
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    created_at: "2024-08-10T09:00:00Z",
-    updated_at: "2024-10-28T16:20:00Z",
-  },
-  {
-    id: "staff-5",
-    username: "neha_kitchen",
-    email: "neha@spiceroute.com",
-    phone: "9876543214",
-    role: "KITCHEN_STAFF",
-    is_active: true,
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    created_at: "2024-10-22T13:45:00Z",
-    updated_at: "2024-11-02T10:15:00Z",
-  },
-];
+import { StaffMember, getStaffMember, updateStaff, StaffRole } from "@/lib/api/admin/staff";
 
 export default function EditStaffPage() {
   const router = useRouter();
   const params = useParams();
   const staffId = params.staffId as string;
 
-  const [tenantId, setTenantId] = useState<string | null>(null);
   const [staffData, setStaffData] = useState<StaffFormData | null>(null);
   const [isLoadingStaff, setIsLoadingStaff] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Fetch tenant_id from localStorage
-  useEffect(() => {
-    const stored =
-      localStorage.getItem("current_tenant_id") ||
-      localStorage.getItem("tenant_id");
-    if (stored) {
-      setTenantId(stored);
-    }
-  }, []);
 
   // Fetch staff member details
   useEffect(() => {
@@ -96,18 +26,19 @@ export default function EditStaffPage() {
       try {
         setIsLoadingStaff(true);
         
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        // Call real API
+        const response = await getStaffMember(staffId as string);
         
-        // Find staff from mock data
-        const staff = MOCK_STAFF.find((s) => s.id === staffId);
+        // Handle nested response: response.data.data contains the staff member
+        const responseData = response.data as unknown as Record<string, unknown>;
+        const staff = responseData?.data as StaffMember | undefined;
         
         if (staff) {
           setStaffData({
             username: staff.username,
             email: staff.email,
             phone: staff.phone,
-            role: staff.role,
+            role: (staff.role || "STAFF") as StaffRole,
             is_active: staff.is_active,
           });
         } else {
@@ -124,24 +55,26 @@ export default function EditStaffPage() {
   }, [staffId]);
 
   const handleSubmit = async (data: StaffFormData) => {
-    if (!tenantId) {
-      throw new Error("Tenant ID not found");
-    }
-
     try {
       setIsUpdating(true);
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Get tenant_id from localStorage
+      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
       
-      // Log the submission (for demo purposes)
-      console.log("✅ Staff member updated successfully:", {
-        id: staffId,
-        ...data,
-        tenant_id: tenantId,
-      });
-
-      router.push("/admin/staff");
+      // Prepare update payload - only send updatable fields (NOT tenant_id, it goes in query)
+      const updatePayload = {
+        email: data.email,
+        phone: data.phone,
+        role: data.role as StaffRole,
+      };
+      
+      // Call real API - tenant_id passed as parameter
+      const response = await updateStaff(staffId as string, updatePayload, tenantId);
+      
+      if (response) {
+        console.log("✅ Staff member updated successfully");
+        router.push("/admin/staff");
+      }
     } catch (error) {
       console.error("Failed to update staff:", error);
       throw error;

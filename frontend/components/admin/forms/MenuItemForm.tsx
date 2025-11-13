@@ -32,29 +32,13 @@ export interface MenuItemFormData {
   is_vegetarian: boolean;
   preparation_time_minutes: number;
   image_url?: string;
-  allergens?: string[];
-  tags?: string[];
 }
 
-const ALLERGEN_OPTIONS = [
-  "dairy",
-  "gluten",
-  "peanuts",
-  "tree_nuts",
-  "soy",
-  "fish",
-  "shellfish",
-  "eggs",
-];
-
-const TAG_OPTIONS = ["spicy", "popular", "bestseller", "new", "vegan"];
-
 const DEFAULT_CATEGORIES = [
-  "APPETIZERS",
-  "MAIN_COURSE",
-  "BREADS",
-  "DESSERTS",
-  "BEVERAGES",
+  "Appetizers",
+  "Main Course",
+  "Sides",
+  "Desserts",
 ];
 
 export function MenuItemForm({
@@ -65,12 +49,9 @@ export function MenuItemForm({
   categories = DEFAULT_CATEGORIES,
 }: MenuItemFormProps) {
   const [error, setError] = useState<string | null>(null);
-  const [selectedAllergens, setSelectedAllergens] = useState<string[]>(
-    initialData?.allergens || []
-  );
-  const [selectedTags, setSelectedTags] = useState<string[]>(
-    initialData?.tags || []
-  );
+
+  // Determine if vegetarian from dietary_tags or is_vegetarian field
+  const initialIsVegetarian = initialData?.dietary_tags?.includes("veg") ?? initialData?.is_vegetarian ?? false;
 
   const {
     register,
@@ -82,9 +63,9 @@ export function MenuItemForm({
       name: initialData?.name || "",
       description: initialData?.description || "",
       price: initialData?.price || 0,
-      category: initialData?.category || "MAIN_COURSE",
-      is_vegetarian: initialData?.is_vegetarian ?? false,
-      preparation_time_minutes: initialData?.preparation_time_minutes || 15,
+      category: initialData?.category || "Appetizers",
+      is_vegetarian: initialIsVegetarian,
+      preparation_time_minutes: initialData?.preparation_time || 15,
       image_url: initialData?.image_url || "",
     },
   });
@@ -94,28 +75,10 @@ export function MenuItemForm({
   const onSubmitHandler = async (data: MenuItemFormData) => {
     setError(null);
     try {
-      await onSubmit({
-        ...data,
-        allergens: selectedAllergens,
-        tags: selectedTags,
-      });
+      await onSubmit(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
-  };
-
-  const toggleAllergen = (allergen: string) => {
-    setSelectedAllergens((prev) =>
-      prev.includes(allergen)
-        ? prev.filter((a) => a !== allergen)
-        : [...prev, allergen]
-    );
-  };
-
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
   };
 
   return (
@@ -262,52 +225,6 @@ export function MenuItemForm({
         <p className="text-xs text-slate-500 mt-1">
           Provide a URL to an image of the dish
         </p>
-      </div>
-
-      {/* Allergens */}
-      <div>
-        <Label>Allergens</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
-          {ALLERGEN_OPTIONS.map((allergen) => (
-            <div key={allergen} className="flex items-center space-x-2">
-              <Checkbox
-                id={`allergen-${allergen}`}
-                checked={selectedAllergens.includes(allergen)}
-                onCheckedChange={() => toggleAllergen(allergen)}
-                disabled={isLoading}
-              />
-              <Label
-                htmlFor={`allergen-${allergen}`}
-                className="cursor-pointer text-sm capitalize"
-              >
-                {allergen.replace(/_/g, " ")}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tags */}
-      <div>
-        <Label>Tags</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
-          {TAG_OPTIONS.map((tag) => (
-            <div key={tag} className="flex items-center space-x-2">
-              <Checkbox
-                id={`tag-${tag}`}
-                checked={selectedTags.includes(tag)}
-                onCheckedChange={() => toggleTag(tag)}
-                disabled={isLoading}
-              />
-              <Label
-                htmlFor={`tag-${tag}`}
-                className="cursor-pointer text-sm capitalize"
-              >
-                {tag.replace(/_/g, " ")}
-              </Label>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Submit Button */}

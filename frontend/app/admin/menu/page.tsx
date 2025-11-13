@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,54 +14,64 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search } from "lucide-react";
 import { MenuTable } from "@/components/admin/tables/MenuTable";
-import { MenuItem, MenuCategory } from "@/lib/api/admin/menu";
-import { MOCK_MENU_ITEMS } from "@/lib/constants/mockMenuItems";
+import { MenuItem, getMenuWithCategories, deleteMenuItem, updateMenuItem } from "@/lib/api/admin/menu";
 
-// Menu categories
-const MOCK_CATEGORIES: MenuCategory[] = [
-  {
-    id: "cat-1",
-    name: "APPETIZERS",
-    display_order: 1,
-    icon_url: "https://cdn.example.com/appetizers.png",
-    item_count: 8,
-  },
-  {
-    id: "cat-2",
-    name: "MAIN_COURSE",
-    display_order: 2,
-    icon_url: "https://cdn.example.com/main.png",
-    item_count: 12,
-  },
-  {
-    id: "cat-3",
-    name: "BREADS",
-    display_order: 3,
-    icon_url: "https://cdn.example.com/breads.png",
-    item_count: 5,
-  },
-  {
-    id: "cat-4",
-    name: "DESSERTS",
-    display_order: 4,
-    icon_url: "https://cdn.example.com/desserts.png",
-    item_count: 6,
-  },
-  {
-    id: "cat-5",
-    name: "BEVERAGES",
-    display_order: 5,
-    icon_url: "https://cdn.example.com/beverages.png",
-    item_count: 8,
-  },
-];
+// Hardcoded categories
+const CATEGORIES = ["Appetizers", "Main Course", "Sides", "Desserts"];
 
 export default function MenuPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(MOCK_MENU_ITEMS);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [tenantId, setTenantId] = useState<string>("");
+
+  // Load tenant ID and fetch menu
+  useEffect(() => {
+    const stored = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+    setTenantId(stored);
+  }, []);
+
+  // Fetch menu data
+  useEffect(() => {
+    if (!tenantId) return;
+
+    const fetchMenu = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await getMenuWithCategories(tenantId, 20, 0);
+
+        // Response structure: { data: { categories: [...] } }
+        const responseData = response.data as unknown as Record<string, unknown>;
+        const fetchedCategories = ((responseData?.categories as Record<string, unknown>[]) || []);
+
+        // Flatten all items from categories and enrich with category name
+        const allItems = fetchedCategories.flatMap((cat: Record<string, unknown>) => {
+          const categoryName = cat.name as string;
+          const items = (cat.items as MenuItem[] | undefined) || [];
+          // Add category name to each item for filtering
+          return items.map(item => ({
+            ...item,
+            category: categoryName // Use display name instead of ID
+          }));
+        });
+        
+        console.log("✅ Menu items loaded:", allItems.length, allItems);
+        setMenuItems(allItems);
+      } catch (err) {
+        console.error("Error fetching menu:", err);
+        setError(err instanceof Error ? err.message : "Failed to load menu");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMenu();
+  }, [tenantId]);
 
   // Filter items based on search and category
   let filteredItems = menuItems;
@@ -79,8 +89,8 @@ export default function MenuPage() {
   const handleDelete = async (itemId: string) => {
     try {
       setIsDeleting(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+      await deleteMenuItem(itemId, tenantId);
       
       // Remove from local state
       setMenuItems(menuItems.filter((item) => item.id !== itemId));
@@ -94,22 +104,29 @@ export default function MenuPage() {
 
   const handleToggleAvailability = async (
     itemId: string,
-    isAvailable: boolean
+    isCurrentlyAvailable: boolean
   ) => {
     try {
       setIsToggling(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+      // Only update stock_status, don't touch is_available
+      const newStockStatus = isCurrentlyAvailable ? "OUT_OF_STOCK" : "AVAILABLE";
+      await updateMenuItem(itemId, { stock_status: newStockStatus }, tenantId);
       
-      // Update local state
+      // Update local state - only change stock_status
       setMenuItems(
         menuItems.map((item) =>
-          item.id === itemId ? { ...item, is_available: !isAvailable } : item
+          item.id === itemId 
+            ? { 
+                ...item, 
+                stock_status: newStockStatus
+              } 
+            : item
         )
       );
-      console.log("Menu item availability updated successfully");
+      console.log("Menu item stock status updated successfully");
     } catch (error) {
-      console.error("Failed to update menu item availability:", error);
+      console.error("Failed to update menu item stock status:", error);
     } finally {
       setIsToggling(false);
     }
@@ -134,45 +151,85 @@ export default function MenuPage() {
       </div>
 
       {/* Error State */}
-      {/* Removed - using hardcoded data */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-red-800">{error}</p>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Stats */}
+      {/* Stats - Show skeleton or real stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-slate-900">
-              {filteredItems.length}
-            </div>
-            <p className="text-sm text-slate-600">Total Items</p>
+            {isLoading ? (
+              <div className="space-y-2">
+                <div className="h-8 bg-slate-200 rounded animate-pulse"></div>
+                <div className="h-4 bg-slate-100 rounded animate-pulse w-20"></div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-slate-900">
+                  {filteredItems.length}
+                </div>
+                <p className="text-sm text-slate-600">Total Items</p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">
-              {filteredItems.filter((i) => i.is_available).length}
-            </div>
-            <p className="text-sm text-slate-600">Available</p>
+            {isLoading ? (
+              <div className="space-y-2">
+                <div className="h-8 bg-slate-200 rounded animate-pulse"></div>
+                <div className="h-4 bg-slate-100 rounded animate-pulse w-20"></div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-green-600">
+                  {filteredItems.filter((i) => i.stock_status === "AVAILABLE").length}
+                </div>
+                <p className="text-sm text-slate-600">Available</p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-orange-600">
-              {filteredItems.filter((i) => i.is_vegetarian).length}
-            </div>
-            <p className="text-sm text-slate-600">Vegetarian</p>
+            {isLoading ? (
+              <div className="space-y-2">
+                <div className="h-8 bg-slate-200 rounded animate-pulse"></div>
+                <div className="h-4 bg-slate-100 rounded animate-pulse w-20"></div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-orange-600">
+                  {filteredItems.filter((i) => i.dietary_tags?.includes("veg")).length}
+                </div>
+                <p className="text-sm text-slate-600">Vegetarian</p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-slate-900">
-              {MOCK_CATEGORIES.length}
-            </div>
-            <p className="text-sm text-slate-600">Categories</p>
+            {isLoading ? (
+              <div className="space-y-2">
+                <div className="h-8 bg-slate-200 rounded animate-pulse"></div>
+                <div className="h-4 bg-slate-100 rounded animate-pulse w-20"></div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-slate-900">
+                  {CATEGORIES.length}
+                </div>
+                <p className="text-sm text-slate-600">Categories</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Filters */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -184,19 +241,20 @@ export default function MenuPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
+                disabled={isLoading}
               />
             </div>
 
             {/* Category Filter */}
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter} disabled={isLoading}>
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {MOCK_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.name}>
-                    {cat.name}
+                {CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -211,18 +269,33 @@ export default function MenuPage() {
           <CardTitle className="text-lg">
             Menu Items
             <span className="text-sm font-normal text-slate-600 ml-2">
-              ({filteredItems.length})
+              {isLoading ? "..." : `(${filteredItems.length})`}
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <MenuTable
-            items={filteredItems}
-            onDelete={handleDelete}
-            onToggleAvailability={handleToggleAvailability}
-            isDeleting={isDeleting}
-            isToggling={isToggling}
-          />
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                  <div className="h-10 w-10 bg-slate-200 rounded animate-pulse"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-slate-200 rounded animate-pulse w-1/4"></div>
+                    <div className="h-3 bg-slate-100 rounded animate-pulse w-1/3"></div>
+                  </div>
+                  <div className="h-8 w-20 bg-slate-200 rounded animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <MenuTable
+              items={filteredItems}
+              onDelete={handleDelete}
+              onToggleAvailability={handleToggleAvailability}
+              isDeleting={isDeleting}
+              isToggling={isToggling}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

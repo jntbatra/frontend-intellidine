@@ -62,7 +62,7 @@ export default function KitchenCompletedPage() {
         allOrders = response.data;
       }
 
-      const completedOrders = allOrders.filter((o) => o.status === "completed");
+      const completedOrders = allOrders.filter((o) => o.status === "COMPLETED");
       setOrders(completedOrders);
     } catch {
       setOrders([]);

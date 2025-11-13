@@ -35,35 +35,22 @@ interface RawOrderResponse {
 /**
  * Map backend API status to frontend status
  * Backend uses: PENDING, PREPARING, READY, SERVED, COMPLETED, CANCELLED
- * Frontend uses: pending, in_preparation, ready, served, completed, cancelled
+ * Frontend now uses: PENDING, PREPARING, READY, SERVED, COMPLETED, CANCELLED (uppercase)
  */
 function mapBackendStatusToFrontend(backendStatus: string): OrderStatus {
-  const statusMap: Record<string, OrderStatus> = {
-    PENDING: "pending",
-    PREPARING: "in_preparation",
-    READY: "ready",
-    SERVED: "served",
-    COMPLETED: "completed",
-    CANCELLED: "cancelled",
-  };
-  return statusMap[backendStatus.toUpperCase()] || "pending";
+  // Backend already returns uppercase, just ensure it's uppercase
+  return backendStatus.toUpperCase() as OrderStatus;
 }
 
 /**
  * Map frontend status to backend API status
- * Frontend uses: pending, in_preparation, ready, served, completed, cancelled
- * Backend uses: PENDING, PREPARING, READY, SERVED, COMPLETED, CANCELLED
+ * Frontend uses: PENDING, PREPARING, READY, SERVED, COMPLETED, CANCELLED (uppercase)
+ * Backend uses: PENDING, PREPARING, READY, SERVED, COMPLETED, CANCELLED (uppercase)
+ * They're now the same!
  */
 function mapFrontendStatusToBackend(frontendStatus: OrderStatus): string {
-  const statusMap: Record<OrderStatus, string> = {
-    pending: "PENDING",
-    in_preparation: "PREPARING",
-    ready: "READY",
-    served: "SERVED",
-    completed: "COMPLETED",
-    cancelled: "CANCELLED",
-  };
-  return statusMap[frontendStatus];
+  // Both frontend and backend use uppercase now
+  return frontendStatus;
 }
 
 export interface KitchenOrdersParams {
@@ -259,9 +246,9 @@ export async function fetchKitchenOrders(
       success: true,
       data: MOCK_ORDERS.filter(
         (o) =>
-          o.status === "pending" ||
-          o.status === "in_preparation" ||
-          o.status === "ready"
+          o.status === "PENDING" ||
+          o.status === "PREPARING" ||
+          o.status === "READY"
       ),
     };
   }
@@ -314,10 +301,27 @@ export async function updateOrderStatus(
 
     console.log(`📝 Updating order ${orderId}: ${status} → ${backendStatus}`);
 
+    // Get tenant_id from localStorage (set during staff login)
+    const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+    console.log(`🏢 Using tenant_id: ${tenantId}`);
+
+    // Build request body
+    const body: Record<string, unknown> = { 
+      status: backendStatus,
+      tenant_id: tenantId
+    };
+
+    // When marking as SERVED or COMPLETED, also update payment status to COMPLETED
+    if (backendStatus === "SERVED" || backendStatus === "COMPLETED") {
+      body.payment_status = "COMPLETED";
+      console.log(`💳 Setting payment_status to: COMPLETED`);
+    }
+
     // Call Order Service endpoint: PATCH /api/orders/{id}/status
+    // Include tenant_id in body for explicit identification (backend can also extract from JWT)
     const response = await apiClient.patch<Order>(
       `/api/orders/${orderId}/status`,
-      { status: backendStatus }
+      body
     );
     return response;
   } catch (error) {
@@ -328,7 +332,7 @@ export async function updateOrderStatus(
 
 /**
  * Mark order as in preparation
- * Transitions order from "pending" to "in_preparation"
+ * Transitions order from "PENDING" to "PREPARING"
  *
  * @param orderId - The order ID
  * @returns Promise with updated order
@@ -336,23 +340,23 @@ export async function updateOrderStatus(
 export async function prepareOrder(
   orderId: string
 ): Promise<ApiResponse<Order>> {
-  return updateOrderStatus(orderId, "in_preparation");
+  return updateOrderStatus(orderId, "PREPARING" as OrderStatus);
 }
 
 /**
  * Mark order as ready
- * Transitions order from "in_preparation" to "ready"
+ * Transitions order from "PREPARING" to "READY"
  *
  * @param orderId - The order ID
  * @returns Promise with updated order
  */
 export async function readyOrder(orderId: string): Promise<ApiResponse<Order>> {
-  return updateOrderStatus(orderId, "ready");
+  return updateOrderStatus(orderId, "READY" as OrderStatus);
 }
 
 /**
  * Mark order as completed
- * Transitions order from "ready" to "completed"
+ * Transitions order from "SERVED" to "COMPLETED"
  *
  * @param orderId - The order ID
  * @returns Promise with updated order
@@ -360,7 +364,7 @@ export async function readyOrder(orderId: string): Promise<ApiResponse<Order>> {
 export async function completeOrder(
   orderId: string
 ): Promise<ApiResponse<Order>> {
-  return updateOrderStatus(orderId, "completed");
+  return updateOrderStatus(orderId, "COMPLETED" as OrderStatus);
 }
 
 /**
@@ -379,9 +383,16 @@ export async function cancelOrder(
     console.log(`🗑️ Cancelling order ${orderId}`);
     console.log(`📝 Reason: ${reason}`);
 
+    // Get tenant_id from localStorage (set during staff login)
+    const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+    console.log(`🏢 Using tenant_id: ${tenantId}`);
+
     const response = await apiClient.patch<Order>(
       `/api/orders/${orderId}/cancel`,
-      { reason }
+      { 
+        reason,
+        tenant_id: tenantId
+      }
     );
 
     console.log(`✅ Order cancelled successfully:`, response);
@@ -426,10 +437,9 @@ export async function getKitchenStats(
 
     // Calculate statistics from orders
     const stats: KitchenStats = {
-      total_pending: orders.filter((o) => o.status === "pending").length,
-      total_preparing: orders.filter((o) => o.status === "in_preparation")
-        .length,
-      total_ready: orders.filter((o) => o.status === "ready").length,
+      total_pending: orders.filter((o) => o.status === "PENDING").length,
+      total_preparing: orders.filter((o) => o.status === "PREPARING").length,
+      total_ready: orders.filter((o) => o.status === "READY").length,
       average_prep_time:
         orders.length > 0
           ? Math.round(

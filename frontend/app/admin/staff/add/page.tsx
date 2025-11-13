@@ -3,44 +3,38 @@
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StaffForm, StaffFormData } from "@/components/admin/forms/StaffForm";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { createStaff, StaffRole } from "@/lib/api/admin/staff";
 
 export default function AddStaffPage() {
   const router = useRouter();
-  const [tenantId, setTenantId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Get tenant_id from localStorage
-    const stored = localStorage.getItem("current_tenant_id") || localStorage.getItem("tenant_id");
-    if (stored) {
-      setTenantId(stored);
-    }
-  }, []);
-
   const handleSubmit = async (data: StaffFormData) => {
-    if (!tenantId) {
-      throw new Error("Tenant ID not found");
-    }
-
     try {
       setIsLoading(true);
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Get tenant_id from localStorage
+      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
       
-      // Generate mock staff ID
-      const newStaffId = `staff-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Log the submission (for demo purposes)
-      console.log("✅ Staff member added successfully:", {
-        id: newStaffId,
-        ...data,
+      // Prepare create payload
+      const createPayload = {
+        username: data.username,
+        email: data.email,
+        phone: data.phone,
+        password: data.password || "",
+        role: data.role as StaffRole,
         tenant_id: tenantId,
-      });
+      };
       
-      // Show success feedback and redirect
-      router.push("/admin/staff");
+      // Call real API
+      const response = await createStaff(createPayload, tenantId);
+      
+      if (response) {
+        console.log("✅ Staff member added successfully");
+        // Show success feedback and redirect
+        router.push("/admin/staff");
+      }
     } catch (error) {
       console.error("Failed to add staff:", error);
       throw error;

@@ -6,185 +6,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { MenuItemForm, MenuItemFormData } from "@/components/admin/forms/MenuItemForm";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { MenuItem } from "@/lib/api/admin/menu";
+import { MenuItem, updateMenuItem, getMenuItem } from "@/lib/api/admin/menu";
 
-const DEFAULT_CATEGORIES = [
-  "APPETIZERS",
-  "MAIN_COURSE",
-  "BREADS",
-  "DESSERTS",
-  "BEVERAGES",
-];
-
-// Mock menu items
-const MOCK_MENU_ITEMS: MenuItem[] = [
-  {
-    id: "item-1",
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    name: "Butter Chicken",
-    description: "Tender chicken in rich tomato-based gravy with cream",
-    price: 350,
-    category: "MAIN_COURSE",
-    image_url: "https://cdn.example.com/butter-chicken.jpg",
-    is_vegetarian: false,
-    is_available: true,
-    preparation_time_minutes: 15,
-    allergens: ["dairy", "gluten"],
-    tags: ["popular", "bestseller"],
-    created_at: "2024-10-15T10:30:00Z",
-    updated_at: "2024-11-01T08:00:00Z",
-  },
-  {
-    id: "item-2",
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    name: "Paneer Tikka",
-    description: "Indian cheese marinated in yogurt and spices",
-    price: 280,
-    category: "APPETIZERS",
-    image_url: "https://cdn.example.com/paneer-tikka.jpg",
-    is_vegetarian: true,
-    is_available: true,
-    preparation_time_minutes: 12,
-    allergens: ["dairy"],
-    tags: ["spicy", "popular"],
-    created_at: "2024-10-20T14:15:00Z",
-    updated_at: "2024-11-02T09:45:00Z",
-  },
-  {
-    id: "item-3",
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    name: "Dal Fry",
-    description: "Yellow lentils tempered with cumin and asafetida",
-    price: 180,
-    category: "MAIN_COURSE",
-    image_url: "https://cdn.example.com/dal-fry.jpg",
-    is_vegetarian: true,
-    is_available: true,
-    preparation_time_minutes: 10,
-    allergens: [],
-    tags: ["vegan"],
-    created_at: "2024-10-10T11:20:00Z",
-    updated_at: "2024-11-03T07:30:00Z",
-  },
-  {
-    id: "item-4",
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    name: "Tandoori Chicken",
-    description: "Marinated chicken cooked in a traditional tandoor",
-    price: 320,
-    category: "MAIN_COURSE",
-    image_url: "https://cdn.example.com/tandoori.jpg",
-    is_vegetarian: false,
-    is_available: false,
-    preparation_time_minutes: 18,
-    allergens: ["gluten"],
-    tags: ["spicy"],
-    created_at: "2024-09-20T13:45:00Z",
-    updated_at: "2024-10-28T16:20:00Z",
-  },
-  {
-    id: "item-5",
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    name: "Naan",
-    description: "Traditional Indian flatbread baked in tandoor",
-    price: 50,
-    category: "BREADS",
-    image_url: "https://cdn.example.com/naan.jpg",
-    is_vegetarian: true,
-    is_available: true,
-    preparation_time_minutes: 5,
-    allergens: ["gluten", "dairy"],
-    tags: ["popular"],
-    created_at: "2024-10-22T09:00:00Z",
-    updated_at: "2024-11-04T10:15:00Z",
-  },
-  {
-    id: "item-6",
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    name: "Gulab Jamun",
-    description: "Milk solids fried and soaked in sugar syrup",
-    price: 100,
-    category: "DESSERTS",
-    image_url: "https://cdn.example.com/gulab-jamun.jpg",
-    is_vegetarian: true,
-    is_available: true,
-    preparation_time_minutes: 8,
-    allergens: ["dairy"],
-    tags: ["bestseller"],
-    created_at: "2024-10-18T15:30:00Z",
-    updated_at: "2024-11-05T08:45:00Z",
-  },
-  {
-    id: "item-7",
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    name: "Mango Lassi",
-    description: "Refreshing yogurt-based mango smoothie",
-    price: 120,
-    category: "BEVERAGES",
-    image_url: "https://cdn.example.com/lassi.jpg",
-    is_vegetarian: true,
-    is_available: true,
-    preparation_time_minutes: 3,
-    allergens: ["dairy"],
-    tags: [],
-    created_at: "2024-10-25T10:00:00Z",
-    updated_at: "2024-11-01T06:30:00Z",
-  },
-  {
-    id: "item-8",
-    tenant_id: "11111111-1111-1111-1111-111111111111",
-    name: "Chicken Biryani",
-    description: "Fragrant rice with spiced chicken and herbs",
-    price: 280,
-    category: "MAIN_COURSE",
-    image_url: "https://cdn.example.com/biryani.jpg",
-    is_vegetarian: false,
-    is_available: true,
-    preparation_time_minutes: 20,
-    allergens: ["gluten"],
-    tags: ["popular", "new"],
-    created_at: "2024-10-28T12:15:00Z",
-    updated_at: "2024-11-03T11:00:00Z",
-  },
-];
+const CATEGORIES = ["Appetizers", "Main Course", "Sides", "Desserts"];
 
 export default function EditMenuItemPage() {
   const router = useRouter();
   const params = useParams();
   const itemId = params.itemId as string;
 
-  const [tenantId, setTenantId] = useState<string | null>(null);
   const [menuItem, setMenuItem] = useState<MenuItem | null>(null);
   const [isLoadingItem, setIsLoadingItem] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tenantId, setTenantId] = useState<string>("");
 
-  // Fetch tenant_id from localStorage
+  // Load tenant ID from localStorage
   useEffect(() => {
-    const stored =
-      localStorage.getItem("current_tenant_id") ||
-      localStorage.getItem("tenant_id");
-    if (stored) {
-      setTenantId(stored);
-    }
+    const stored = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+    setTenantId(stored);
   }, []);
 
   // Fetch menu item details
   useEffect(() => {
-    if (!itemId) return;
+    if (!itemId || !tenantId) return;
 
     const fetchMenuItemData = async () => {
       try {
         setIsLoadingItem(true);
         
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        // Call real API
+        const response = await getMenuItem(itemId as string, tenantId);
         
-        // Find item from mock data
-        const item = MOCK_MENU_ITEMS.find((i) => i.id === itemId);
+        // Response structure: { data: { ...menuItem } }
+        const itemData = response.data as unknown as MenuItem;
         
-        if (item) {
-          setMenuItem(item);
+        if (itemData && itemData.id) {
+          setMenuItem(itemData);
         } else {
           setError("Menu item not found");
         }
@@ -196,27 +54,33 @@ export default function EditMenuItemPage() {
     };
 
     fetchMenuItemData();
-  }, [itemId]);
+  }, [itemId, tenantId]);
 
   const handleSubmit = async (data: MenuItemFormData) => {
-    if (!tenantId) {
-      throw new Error("Tenant ID not found");
-    }
-
     try {
       setIsUpdating(true);
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Prepare update payload - only send the fields that exist in MenuItemFormData
+      const updatePayload = {
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        is_vegetarian: data.is_vegetarian,
+        preparation_time: Math.round(data.preparation_time_minutes), // Convert to integer
+        image_url: data.image_url,
+      };
       
-      // Log the submission (for demo purposes)
-      console.log("✅ Menu item updated successfully:", {
-        id: itemId,
-        ...data,
-        tenant_id: tenantId,
-      });
-
-      router.push("/admin/menu");
+      // Get tenant_id from localStorage
+      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+      
+      // Call real API
+      const response = await updateMenuItem(itemId, updatePayload, tenantId);
+      
+      if (response) {
+        console.log("✅ Menu item updated successfully");
+        router.push("/admin/menu");
+      }
     } catch (error) {
       console.error("Failed to update menu item:", error);
       throw error;
@@ -276,9 +140,9 @@ export default function EditMenuItemPage() {
               <MenuItemForm
                 onSubmit={handleSubmit}
                 isLoading={isUpdating}
-                initialData={menuItem}
+                initialData={menuItem || undefined}
                 mode="edit"
-                categories={DEFAULT_CATEGORIES}
+                categories={CATEGORIES}
               />
             </CardContent>
           </Card>

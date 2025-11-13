@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Test API Connection
  * Run this in browser console to debug API connectivity

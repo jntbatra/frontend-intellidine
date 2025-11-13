@@ -3,24 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home,
   Users,
   UtensilsCrossed,
-  Package,
-  BarChart3,
-  Tag,
   ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/admin", icon: Home, label: "Dashboard", exact: true },
   { href: "/admin/staff", icon: Users, label: "Staff", exact: false },
   { href: "/admin/menu", icon: UtensilsCrossed, label: "Menu", exact: false },
   { href: "/admin/orders", icon: ClipboardList, label: "Orders", exact: false },
-  { href: "/admin/inventory", icon: Package, label: "Inventory", exact: false },
-  { href: "/admin/analytics", icon: BarChart3, label: "Analytics", exact: false },
-  { href: "/admin/discounts", icon: Tag, label: "Discounts", exact: false },
 ];
 
 export function AdminSidebar() {

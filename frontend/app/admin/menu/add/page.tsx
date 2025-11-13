@@ -3,52 +3,43 @@
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MenuItemForm, MenuItemFormData } from "@/components/admin/forms/MenuItemForm";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { createMenuItem } from "@/lib/api/admin/menu";
 
-const DEFAULT_CATEGORIES = [
-  "APPETIZERS",
-  "MAIN_COURSE",
-  "BREADS",
-  "DESSERTS",
-  "BEVERAGES",
-];
+const CATEGORIES = ["Appetizers", "Main Course", "Sides", "Desserts"];
 
 export default function AddMenuItemPage() {
   const router = useRouter();
-  const [tenantId, setTenantId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Get tenant_id from localStorage
-    const stored = localStorage.getItem("current_tenant_id") || localStorage.getItem("tenant_id");
-    if (stored) {
-      setTenantId(stored);
-    }
-  }, []);
-
   const handleSubmit = async (data: MenuItemFormData) => {
-    if (!tenantId) {
-      throw new Error("Tenant ID not found");
-    }
-
     try {
       setIsLoading(true);
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Get tenant_id from localStorage (set during staff login)
+      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
       
-      // Generate mock item ID
-      const newItemId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      // Prepare payload - remove allergens and tags
+      const createPayload = {
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        is_vegetarian: data.is_vegetarian,
+        preparation_time: Math.round(data.preparation_time_minutes), // Convert to integer
+        image_url: data.image_url,
+        available: true, // Default to available
+        tenant_id: tenantId, // Add tenant_id
+      };
       
-      // Log the submission (for demo purposes)
-      console.log("✅ Menu item added successfully:", {
-        id: newItemId,
-        ...data,
-        tenant_id: tenantId,
-      });
+      // Call real API
+      const response = await createMenuItem(createPayload);
       
-      // Show success feedback and redirect
-      router.push("/admin/menu");
+      if (response) {
+        console.log("✅ Menu item added successfully");
+        // Redirect to menu page
+        router.push("/admin/menu");
+      }
     } catch (error) {
       console.error("Failed to add menu item:", error);
       throw error;
@@ -78,7 +69,7 @@ export default function AddMenuItemPage() {
             onSubmit={handleSubmit}
             isLoading={isLoading}
             mode="add"
-            categories={DEFAULT_CATEGORIES}
+            categories={CATEGORIES}
           />
         </CardContent>
       </Card>
@@ -89,11 +80,9 @@ export default function AddMenuItemPage() {
           <CardTitle className="text-blue-900">Quick Tips</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-blue-800 space-y-2">
-          <p>• <strong>Name:</strong> Keep it clear and appetizing (e.g., "Spicy Paneer Tikka")</p>
+          <p>• <strong>Name:</strong> Keep it clear and appetizing (e.g., &quot;Spicy Paneer Tikka&quot;)</p>
           <p>• <strong>Price:</strong> Enter in rupees without currency symbol</p>
           <p>• <strong>Preparation Time:</strong> Estimate in minutes from order to delivery</p>
-          <p>• <strong>Allergens:</strong> Mark all applicable allergens for customer safety</p>
-          <p>• <strong>Tags:</strong> Use tags to highlight special items like bestsellers</p>
         </CardContent>
       </Card>
     </div>

@@ -66,7 +66,8 @@ export function MenuTable({
   ) => {
     try {
       setTogglingId(itemId);
-      await onToggleAvailability(itemId, !currentStatus);
+      // Pass the actual current availability status (not negated)
+      await onToggleAvailability(itemId, currentStatus);
     } finally {
       setTogglingId(null);
     }
@@ -96,30 +97,38 @@ export function MenuTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item) => (
+            {items.map((item) => {
+              const isVegetarian = item.dietary_tags?.includes("veg");
+              const isAvailable = item.stock_status === "AVAILABLE";
+              
+              return (
               <TableRow key={item.id} className="hover:bg-slate-50">
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{item.category}</Badge>
                 </TableCell>
                 <TableCell className="font-semibold">₹{item.price}</TableCell>
-                <TableCell>{item.preparation_time_minutes}</TableCell>
+                <TableCell>{item.preparation_time} min</TableCell>
                 <TableCell>
                   <Badge
-                    variant={item.is_vegetarian ? "default" : "secondary"}
+                    variant={isVegetarian ? "default" : "secondary"}
                     className={
-                      item.is_vegetarian
+                      isVegetarian
                         ? "bg-green-100 text-green-800"
                         : "bg-orange-100 text-orange-800"
                     }
                   >
-                    {item.is_vegetarian ? "🥗 Veg" : "🍗 Non-Veg"}
+                    {isVegetarian ? "🥗 Veg" : "🍗 Non-Veg"}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {item.is_available ? (
+                  {isAvailable ? (
                     <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
                       ✓ Available
+                    </span>
+                  ) : item.stock_status === "LOW_STOCK" ? (
+                    <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
+                      ⚠ Low Stock
                     </span>
                   ) : (
                     <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
@@ -143,11 +152,11 @@ export function MenuTable({
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
-                          handleToggleAvailability(item.id, item.is_available)
+                          handleToggleAvailability(item.id, isAvailable)
                         }
                         disabled={togglingId === item.id || isToggling}
                       >
-                        {item.is_available ? (
+                        {isAvailable ? (
                           <>
                             <EyeOff size={14} className="mr-2" />
                             Mark Out of Stock
@@ -170,7 +179,8 @@ export function MenuTable({
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+            );
+            })}
           </TableBody>
         </Table>
       </div>

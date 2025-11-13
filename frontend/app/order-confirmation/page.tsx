@@ -68,16 +68,15 @@ export default function OrderConfirmationPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Authentication check
+  // Authentication check - required to verify customer identity
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
-    const role = localStorage.getItem("staff_role");
 
-    if (!token || role === "kitchen") {
-      router.push("/");
+    if (!token) {
+      router.push(`/auth/otp?table_id=${tableId}&tenant_id=${tenantId}`);
       return;
     }
-  }, [router]);
+  }, [router, tableId, tenantId]);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -389,6 +388,15 @@ export default function OrderConfirmationPage() {
           >
             <ChefHat className="mr-2 h-5 w-5" />
             Order More Items
+          </Button>
+          <Button
+            onClick={() =>
+              router.push(`/orders?table_id=${tableId}&tenant_id=${tenantId}`)
+            }
+            variant="outline"
+            className="flex-1 py-4 md:py-3 text-base md:text-lg font-semibold border-blue-200 hover:bg-blue-50 min-h-12 md:min-h-0 text-blue-600"
+          >
+            View Order History
           </Button>
           <Button
             onClick={() => {
