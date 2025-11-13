@@ -244,7 +244,7 @@ export const generateDiscountStats = (discounts: Discount[]): DiscountStats => {
           (d.usage_count || 0) > (max.usage_count || 0) ? d : max
         )
       : null;
-
+        // hello cuties
   const typeBreakdown = discounts.reduce((acc, d) => {
     const existing = acc.find((t) => t.type === d.type);
     if (existing) {
@@ -268,7 +268,8 @@ export const generateDiscountStats = (discounts: Discount[]): DiscountStats => {
     total_savings_given: totalSavings,
     most_used_discount: mostUsed,
     average_usage_per_discount: Math.round(
-      discounts.reduce((sum, d) => sum + (d.usage_count || 0), 0) / discounts.length
+      discounts.reduce((sum, d) => sum + (d.usage_count || 0), 0) /
+        discounts.length
     ),
     top_discount_types: typeBreakdown.sort((a, b) => b.savings - a.savings),
   };
@@ -324,7 +325,8 @@ export const getDiscountDetailStats = (
       gross_revenue: avgOrderValue * (discount.usage_count || 0),
       discount_amount: discount.total_savings || 0,
       net_revenue:
-        avgOrderValue * (discount.usage_count || 0) - (discount.total_savings || 0),
+        avgOrderValue * (discount.usage_count || 0) -
+        (discount.total_savings || 0),
     },
   };
 };
