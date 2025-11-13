@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { QueryClient } from "@tanstack/react-query";
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL:
-    process.env.NEXT_PUBLIC_API_URL || "",
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || "",
   TIMEOUT: 10000,
 } as const;
 

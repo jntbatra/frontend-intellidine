@@ -1,5 +1,8 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-img-element */
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -108,7 +111,9 @@ export function AvatarSelector({
           <div className="space-y-6">
             {/* Avatar Styles */}
             <div>
-              <h3 className="font-semibold text-slate-900 mb-3">Avatar Styles</h3>
+              <h3 className="font-semibold text-slate-900 mb-3">
+                Avatar Styles
+              </h3>
               <div className="grid grid-cols-4 gap-3">
                 {AVATAR_STYLES.map((style) => (
                   <button
@@ -131,7 +136,9 @@ export function AvatarSelector({
 
             {/* Avatar Previews */}
             <div>
-              <h3 className="font-semibold text-slate-900 mb-3">Select Design</h3>
+              <h3 className="font-semibold text-slate-900 mb-3">
+                Select Design
+              </h3>
               <div className="grid grid-cols-3 gap-4">
                 {previewAvatars.map((avatarUrl, index) => (
                   <button

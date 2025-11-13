@@ -1,8 +1,17 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InventoryTable } from "@/components/admin/tables/InventoryTable";
@@ -17,7 +26,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Package, AlertTriangle, TrendingUp } from "lucide-react";
-import { MOCK_INVENTORY_ITEMS, MOCK_INVENTORY_ALERTS } from "@/lib/constants/mockInventory";
+import {
+  MOCK_INVENTORY_ITEMS,
+  MOCK_INVENTORY_ALERTS,
+} from "@/lib/constants/mockInventory";
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -28,16 +40,15 @@ export default function InventoryPage() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
 
-  const {
-    filteredItems,
-    filterItems,
-    updateStock,
-    adjustStock,
-  } = useInventory(MOCK_INVENTORY_ITEMS);
+  const { filteredItems, filterItems, updateStock, adjustStock } =
+    useInventory(MOCK_INVENTORY_ITEMS);
 
   // Filter items whenever filters change
   useEffect(() => {
-    filterItems(searchQuery, stockStatusFilter === "all" ? undefined : stockStatusFilter);
+    filterItems(
+      searchQuery,
+      stockStatusFilter === "all" ? undefined : stockStatusFilter
+    );
   }, [searchQuery, stockStatusFilter, filterItems]);
 
   const handleStockAdjustClick = (itemId: string) => {
@@ -58,7 +69,7 @@ export default function InventoryPage() {
 
     try {
       setIsAdjusting(true);
-      
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -76,7 +87,9 @@ export default function InventoryPage() {
       });
 
       // Update alerts if stock is no longer low
-      const updatedItem = MOCK_INVENTORY_ITEMS.find((i) => i.id === selectedItem.id);
+      const updatedItem = MOCK_INVENTORY_ITEMS.find(
+        (i) => i.id === selectedItem.id
+      );
       if (updatedItem && !updatedItem.is_low_stock) {
         setAlerts((prev) =>
           prev.map((alert) =>
@@ -108,7 +121,13 @@ export default function InventoryPage() {
   const handleAlertResolve = (alertId: string) => {
     setAlerts((prev) =>
       prev.map((alert) =>
-        alert.id === alertId ? { ...alert, status: "resolved", resolved_at: new Date().toISOString() } : alert
+        alert.id === alertId
+          ? {
+              ...alert,
+              status: "resolved",
+              resolved_at: new Date().toISOString(),
+            }
+          : alert
       )
     );
     console.log("✅ Alert resolved:", alertId);
@@ -116,7 +135,9 @@ export default function InventoryPage() {
 
   // Calculate statistics
   const totalItems = MOCK_INVENTORY_ITEMS.length;
-  const lowStockCount = MOCK_INVENTORY_ITEMS.filter((i) => i.is_low_stock).length;
+  const lowStockCount = MOCK_INVENTORY_ITEMS.filter(
+    (i) => i.is_low_stock
+  ).length;
   const overstockCount = MOCK_INVENTORY_ITEMS.filter(
     (i) => i.current_stock > i.maximum_capacity * 0.9
   ).length;
@@ -130,8 +151,12 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Inventory</h1>
-          <p className="text-slate-600 mt-2">Manage stock levels and monitor inventory alerts</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            Inventory
+          </h1>
+          <p className="text-slate-600 mt-2">
+            Manage stock levels and monitor inventory alerts
+          </p>
         </div>
         <Button
           variant="outline"
@@ -156,7 +181,9 @@ export default function InventoryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Total Items</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{totalItems}</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">
+                  {totalItems}
+                </p>
               </div>
               <Package size={32} className="text-blue-500 opacity-20" />
             </div>
@@ -168,7 +195,9 @@ export default function InventoryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Low Stock</p>
-                <p className="text-2xl font-bold text-red-600 mt-1">{lowStockCount}</p>
+                <p className="text-2xl font-bold text-red-600 mt-1">
+                  {lowStockCount}
+                </p>
               </div>
               <AlertTriangle size={32} className="text-red-500 opacity-20" />
             </div>
@@ -180,7 +209,9 @@ export default function InventoryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Overstock</p>
-                <p className="text-2xl font-bold text-orange-600 mt-1">{overstockCount}</p>
+                <p className="text-2xl font-bold text-orange-600 mt-1">
+                  {overstockCount}
+                </p>
               </div>
               <TrendingUp size={32} className="text-orange-500 opacity-20" />
             </div>
@@ -192,7 +223,9 @@ export default function InventoryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Total Value</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">₹{totalInventoryValue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">
+                  ₹{totalInventoryValue.toLocaleString()}
+                </p>
               </div>
               <Package size={32} className="text-purple-500 opacity-20" />
             </div>
@@ -210,7 +243,10 @@ export default function InventoryPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Search */}
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-3 text-slate-400" />
+              <Search
+                size={16}
+                className="absolute left-3 top-3 text-slate-400"
+              />
               <Input
                 placeholder="Search by item name, supplier..."
                 value={searchQuery}
@@ -220,7 +256,10 @@ export default function InventoryPage() {
             </div>
 
             {/* Stock Status Filter */}
-            <Select value={stockStatusFilter} onValueChange={setStockStatusFilter}>
+            <Select
+              value={stockStatusFilter}
+              onValueChange={setStockStatusFilter}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Filter by stock status" />
               </SelectTrigger>
@@ -239,7 +278,8 @@ export default function InventoryPage() {
         <CardHeader>
           <CardTitle>Inventory Items</CardTitle>
           <CardDescription>
-            Showing {filteredItems.length} of {MOCK_INVENTORY_ITEMS.length} items
+            Showing {filteredItems.length} of {MOCK_INVENTORY_ITEMS.length}{" "}
+            items
           </CardDescription>
         </CardHeader>
         <CardContent>

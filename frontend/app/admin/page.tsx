@@ -1,5 +1,9 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/no-unescaped-entities */
+
 import { useEffect, useState } from "react";
 import { MetricCard } from "@/components/admin/cards/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -47,6 +47,9 @@ export function useCustomerOrders(
     staleTime: 30000, // 30 seconds
   });
 
+  console.log("Orders Query Data:", ordersQuery.data); // Debug logging
+  console.log("Orders:", ordersQuery.data?.data); // Debug logging
+
   // Manual refetch
   const refetch = useCallback(() => {
     ordersQuery.refetch();

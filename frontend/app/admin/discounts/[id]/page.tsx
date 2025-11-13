@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useDiscounts } from "@/hooks/admin/useDiscounts";
@@ -176,7 +178,9 @@ export default function DiscountDetailPage() {
                       <div
                         className="bg-blue-500 h-2 rounded-full"
                         style={{
-                          width: `${(discount.usage_count / discount.usage_limit) * 100}%`,
+                          width: `${
+                            (discount.usage_count / discount.usage_limit) * 100
+                          }%`,
                         }}
                       />
                     </div>
@@ -216,7 +220,9 @@ export default function DiscountDetailPage() {
                   <p className="text-lg font-bold text-blue-600 mt-1">
                     ₹
                     {discount.usage_count > 0
-                      ? Math.round(discount.total_savings / discount.usage_count)
+                      ? Math.round(
+                          discount.total_savings / discount.usage_count
+                        )
                       : 0}
                   </p>
                 </div>
@@ -242,9 +248,7 @@ export default function DiscountDetailPage() {
                         }}
                       />
                     </div>
-                    <span className="text-xs font-medium w-6">
-                      {day.count}
-                    </span>
+                    <span className="text-xs font-medium w-6">{day.count}</span>
                   </div>
                 ))}
               </div>

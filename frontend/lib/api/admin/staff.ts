@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { apiClient } from "@/lib/api/client";
 
 export interface StaffMember {
@@ -30,9 +32,7 @@ export interface UpdateStaffPayload {
 
 // Get all staff members
 export async function getStaffList(tenantId: string) {
-  const response = await apiClient.get(
-    `/api/users?tenant_id=${tenantId}`
-  );
+  const response = await apiClient.get(`/api/users?tenant_id=${tenantId}`);
   return response;
 }
 

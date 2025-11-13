@@ -1,4 +1,10 @@
-import type { AnalyticsMetrics, RevenueDatum, PopularItem } from "@/lib/api/admin/analytics";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+import type {
+  AnalyticsMetrics,
+  RevenueDatum,
+  PopularItem,
+} from "@/lib/api/admin/analytics";
 
 // Generate last 30 days of data
 const getLast30DaysData = (): RevenueDatum[] => {

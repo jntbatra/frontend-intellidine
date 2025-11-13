@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useEffect } from "react";
 import { MOCK_AUTH_DATA } from "@/lib/constants/mockAuth";
 

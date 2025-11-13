@@ -1,6 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,7 +85,9 @@ export function StockAdjustmentModal({
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <div>
             <CardTitle>Adjust Stock</CardTitle>
-            <CardDescription className="mt-1">{item.menu_item_name}</CardDescription>
+            <CardDescription className="mt-1">
+              {item.menu_item_name}
+            </CardDescription>
           </div>
           <Button
             variant="ghost"
@@ -106,7 +116,10 @@ export function StockAdjustmentModal({
             <Label htmlFor="adjustment-type" className="text-sm font-semibold">
               Adjustment Type
             </Label>
-            <Select value={adjustmentType} onValueChange={(val: any) => setAdjustmentType(val)}>
+            <Select
+              value={adjustmentType}
+              onValueChange={(val: any) => setAdjustmentType(val)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -160,13 +173,19 @@ export function StockAdjustmentModal({
                       Sold to Customer
                     </SelectItem>
                     <SelectItem value="transfer_out">Transfer Out</SelectItem>
-                    <SelectItem value="inventory_count">Inventory Count</SelectItem>
+                    <SelectItem value="inventory_count">
+                      Inventory Count
+                    </SelectItem>
                   </>
                 )}
                 {adjustmentType === "damage" && (
                   <>
-                    <SelectItem value="damaged_product">Damaged Product</SelectItem>
-                    <SelectItem value="expired_product">Expired Product</SelectItem>
+                    <SelectItem value="damaged_product">
+                      Damaged Product
+                    </SelectItem>
+                    <SelectItem value="expired_product">
+                      Expired Product
+                    </SelectItem>
                     <SelectItem value="lost_product">Lost Product</SelectItem>
                   </>
                 )}
@@ -175,7 +194,9 @@ export function StockAdjustmentModal({
                     <SelectItem value="stock_correction">
                       Stock Correction
                     </SelectItem>
-                    <SelectItem value="physical_count">Physical Count</SelectItem>
+                    <SelectItem value="physical_count">
+                      Physical Count
+                    </SelectItem>
                   </>
                 )}
               </SelectContent>
@@ -207,18 +228,16 @@ export function StockAdjustmentModal({
               </span>
               <span className="text-blue-700">{item.unit}</span>
               {getNewStock() < item.minimum_threshold && (
-                <span className="text-xs text-red-600 ml-auto">⚠️ Below minimum</span>
+                <span className="text-xs text-red-600 ml-auto">
+                  ⚠️ Below minimum
+                </span>
               )}
             </div>
           </div>
 
           {/* Actions */}
           <div className="flex gap-3 justify-end pt-4">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
-            >
+            <Button variant="outline" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
             <Button

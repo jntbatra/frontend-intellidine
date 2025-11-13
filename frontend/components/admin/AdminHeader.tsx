@@ -1,9 +1,19 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @next/next/no-img-element */
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Bell, LogOut, User, CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
+import {
+  Bell,
+  LogOut,
+  User,
+  CheckCircle,
+  AlertCircle,
+  TrendingUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -145,7 +155,10 @@ export function AdminHeader() {
       {/* Right side - Actions */}
       <div className="flex items-center gap-4">
         {/* Notification Bell Dropdown */}
-        <DropdownMenu open={isNotificationOpen} onOpenChange={setIsNotificationOpen}>
+        <DropdownMenu
+          open={isNotificationOpen}
+          onOpenChange={setIsNotificationOpen}
+        >
           <DropdownMenuTrigger asChild>
             <button className="relative p-2 hover:bg-slate-100 rounded-lg transition-colors">
               <Bell size={20} className="text-slate-600" />
@@ -259,7 +272,9 @@ export function AdminHeader() {
                 alt="Manager Avatar"
                 className="w-8 h-8 rounded-full border border-orange-200"
               />
-              <span className="text-sm font-medium text-slate-900">Manager</span>
+              <span className="text-sm font-medium text-slate-900">
+                Manager
+              </span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">

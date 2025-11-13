@@ -5,7 +5,12 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   ChefHat,
   ShoppingCart,
@@ -166,6 +171,7 @@ export function Navigation({ cartItemCount = 0 }: NavigationProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80 p-0">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">

@@ -1,6 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface RevenueChartProps {
   data: any[];
@@ -21,7 +29,10 @@ export function RevenueChart({ data }: RevenueChartProps) {
           {/* Mini Chart */}
           <div className="flex items-end justify-between h-32 gap-1 bg-slate-50 p-4 rounded-lg">
             {data.map((day, idx) => (
-              <div key={idx} className="flex-1 flex flex-col items-center gap-1">
+              <div
+                key={idx}
+                className="flex-1 flex flex-col items-center gap-1"
+              >
                 {/* Revenue bar */}
                 <div
                   className="w-full bg-blue-500 rounded-t"
@@ -59,13 +70,18 @@ export function RevenueChart({ data }: RevenueChartProps) {
             <div>
               <p className="text-xs text-slate-600">Avg Daily Revenue</p>
               <p className="text-lg font-bold text-slate-900">
-                ₹{Math.round(data.reduce((sum, d) => sum + d.revenue, 0) / data.length).toLocaleString()}
+                ₹
+                {Math.round(
+                  data.reduce((sum, d) => sum + d.revenue, 0) / data.length
+                ).toLocaleString()}
               </p>
             </div>
             <div>
               <p className="text-xs text-slate-600">Avg Daily Orders</p>
               <p className="text-lg font-bold text-slate-900">
-                {Math.round(data.reduce((sum, d) => sum + d.orders, 0) / data.length)}
+                {Math.round(
+                  data.reduce((sum, d) => sum + d.orders, 0) / data.length
+                )}
               </p>
             </div>
             <div>

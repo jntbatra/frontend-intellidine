@@ -1,7 +1,15 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Printer } from "lucide-react";
@@ -50,7 +58,10 @@ export default function AnalyticsReportPage() {
       icon: "🍽️",
       data: {
         topItem: analytics.popular_items[0],
-        totalSold: analytics.popular_items.reduce((sum, i) => sum + i.quantity_sold, 0),
+        totalSold: analytics.popular_items.reduce(
+          (sum, i) => sum + i.quantity_sold,
+          0
+        ),
       },
     },
   ];
@@ -90,7 +101,9 @@ export default function AnalyticsReportPage() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-blue-700 font-semibold">Report Period</p>
+              <p className="text-sm text-blue-700 font-semibold">
+                Report Period
+              </p>
               <p className="text-2xl font-bold text-blue-900 mt-1">
                 Last 30 Days (Nov 1 - Nov 8, 2025)
               </p>
@@ -155,14 +168,18 @@ export default function AnalyticsReportPage() {
       <Card>
         <CardHeader>
           <CardTitle>Revenue Breakdown</CardTitle>
-          <CardDescription>Detailed revenue analysis by payment method</CardDescription>
+          <CardDescription>
+            Detailed revenue analysis by payment method
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {analytics.payment_method_breakdown.map((method) => (
               <div key={method.method}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-slate-900">{method.method}</span>
+                  <span className="font-medium text-slate-900">
+                    {method.method}
+                  </span>
                   <span className="font-bold text-slate-900">
                     ₹{method.amount.toLocaleString()}
                   </span>
@@ -174,7 +191,8 @@ export default function AnalyticsReportPage() {
                   />
                 </div>
                 <p className="text-xs text-slate-600 mt-1">
-                  {method.percentage.toFixed(1)}% of total • {method.count} transactions
+                  {method.percentage.toFixed(1)}% of total • {method.count}{" "}
+                  transactions
                 </p>
               </div>
             ))}
@@ -211,23 +229,33 @@ export default function AnalyticsReportPage() {
                 </tr>
               </thead>
               <tbody>
-                {analytics.customer_analytics.top_customers.map((customer, idx) => (
-                  <tr key={customer.customer_id} className="border-b hover:bg-slate-50">
-                    <td className="px-4 py-3 font-bold text-slate-900">{idx + 1}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900">
-                      {customer.customer_name}
-                    </td>
-                    <td className="px-4 py-3 text-center text-slate-700">
-                      {customer.order_count}
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-900">
-                      ₹{customer.total_spent.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-center text-slate-700">
-                      ₹{Math.round(customer.total_spent / customer.order_count)}
-                    </td>
-                  </tr>
-                ))}
+                {analytics.customer_analytics.top_customers.map(
+                  (customer, idx) => (
+                    <tr
+                      key={customer.customer_id}
+                      className="border-b hover:bg-slate-50"
+                    >
+                      <td className="px-4 py-3 font-bold text-slate-900">
+                        {idx + 1}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-slate-900">
+                        {customer.customer_name}
+                      </td>
+                      <td className="px-4 py-3 text-center text-slate-700">
+                        {customer.order_count}
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                        ₹{customer.total_spent.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-center text-slate-700">
+                        ₹
+                        {Math.round(
+                          customer.total_spent / customer.order_count
+                        )}
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
@@ -237,35 +265,49 @@ export default function AnalyticsReportPage() {
       {/* Insights */}
       <Card className="bg-green-50 border-green-200">
         <CardHeader>
-          <CardTitle className="text-green-900">Key Insights & Recommendations</CardTitle>
+          <CardTitle className="text-green-900">
+            Key Insights & Recommendations
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-green-900">
           <div className="flex gap-3">
             <span className="text-2xl">✓</span>
             <div>
               <p className="font-semibold">Strong Revenue Growth</p>
-              <p className="text-sm text-green-800">Revenue is up 12.5% compared to last month, indicating positive business momentum.</p>
+              <p className="text-sm text-green-800">
+                Revenue is up 12.5% compared to last month, indicating positive
+                business momentum.
+              </p>
             </div>
           </div>
           <div className="flex gap-3">
             <span className="text-2xl">✓</span>
             <div>
               <p className="font-semibold">High Completion Rate</p>
-              <p className="text-sm text-green-800">94.2% order completion rate shows excellent operational efficiency and customer satisfaction.</p>
+              <p className="text-sm text-green-800">
+                94.2% order completion rate shows excellent operational
+                efficiency and customer satisfaction.
+              </p>
             </div>
           </div>
           <div className="flex gap-3">
             <span className="text-2xl">💡</span>
             <div>
               <p className="font-semibold">Peak Hour Optimization</p>
-              <p className="text-sm text-green-800">Peak hours are 12:00-14:00 and 18:00-21:00. Consider increasing staff during these times.</p>
+              <p className="text-sm text-green-800">
+                Peak hours are 12:00-14:00 and 18:00-21:00. Consider increasing
+                staff during these times.
+              </p>
             </div>
           </div>
           <div className="flex gap-3">
             <span className="text-2xl">📈</span>
             <div>
               <p className="font-semibold">Customer Retention Focus</p>
-              <p className="text-sm text-green-800">38.2% repeat customer rate - consider loyalty programs to increase this metric.</p>
+              <p className="text-sm text-green-800">
+                38.2% repeat customer rate - consider loyalty programs to
+                increase this metric.
+              </p>
             </div>
           </div>
         </CardContent>

@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -140,14 +142,18 @@ export function StaffTable({
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => {
-        if (!open) setDeleteId(null);
-      }}>
+      <AlertDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteId(null);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Staff Member?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this staff member? This action cannot be undone.
+              Are you sure you want to delete this staff member? This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">

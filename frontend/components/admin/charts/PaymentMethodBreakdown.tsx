@@ -1,6 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface PaymentBreakdownProps {
   data: any[];
@@ -32,8 +40,8 @@ export function PaymentMethodBreakdown({ data }: PaymentBreakdownProps) {
                     startAngle += (data[i].percentage / 100) * 360;
                   }
                   const endAngle = startAngle + (item.percentage / 100) * 360;
-                  const start = ((startAngle * Math.PI) / 180);
-                  const end = ((endAngle * Math.PI) / 180);
+                  const start = (startAngle * Math.PI) / 180;
+                  const end = (endAngle * Math.PI) / 180;
                   const startX = 50 + 40 * Math.cos(start - Math.PI / 2);
                   const startY = 50 + 40 * Math.sin(start - Math.PI / 2);
                   const endX = 50 + 40 * Math.cos(end - Math.PI / 2);
@@ -72,11 +80,15 @@ export function PaymentMethodBreakdown({ data }: PaymentBreakdownProps) {
           {/* Legend */}
           <div className="space-y-2">
             {data.map((item) => (
-              <div key={item.method} className="flex items-center justify-between">
+              <div
+                key={item.method}
+                className="flex items-center justify-between"
+              >
                 <div className="flex items-center gap-2">
                   <div
                     className={`w-3 h-3 rounded-full ${
-                      colors[item.method as keyof typeof colors] || "bg-gray-500"
+                      colors[item.method as keyof typeof colors] ||
+                      "bg-gray-500"
                     }`}
                   ></div>
                   <span className="text-sm font-medium text-slate-700">
@@ -100,7 +112,10 @@ export function PaymentMethodBreakdown({ data }: PaymentBreakdownProps) {
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-900">Total</span>
               <span className="text-lg font-bold text-slate-900">
-                ₹{data.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}
+                ₹
+                {data
+                  .reduce((sum, item) => sum + item.amount, 0)
+                  .toLocaleString()}
               </span>
             </div>
           </div>

@@ -62,11 +62,20 @@ export async function fetchCustomerOrders(
     offset: String(params.offset || 0),
   });
 
+  console.log("Query params:", queryParams.toString()); // Debug logging
+  console.log(
+    "Request URL:",
+    `${
+      process.env.NEXT_PUBLIC_API_URL
+    }/api/customers/my-orders?${queryParams.toString()}`
+  ); // Debug logging
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
   const token = localStorage.getItem("auth_token");
+  console.log("Auth token exists:", !!token); // Debug logging
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
@@ -88,5 +97,62 @@ export async function fetchCustomerOrders(
   }
 
   const data = await response.json();
-  return data.data;
+  console.log("Raw API Response:", data); // Debug logging
+
+  // Handle different possible response structures
+  let result: MyOrdersResponse;
+
+  if (
+    data.data &&
+    typeof data.data === "object" &&
+    "data" in data.data &&
+    Array.isArray(data.data.data)
+  ) {
+    // Structure: { data: { data: [...], total: 1, ... }, meta: {...} }
+    result = data.data;
+    console.log("Using nested structure:", result);
+  } else if (data.data && Array.isArray(data.data)) {
+    // Structure: { data: [...], total: 1, ... }
+    result = data;
+    console.log("Using direct structure:", result);
+  } else if (Array.isArray(data)) {
+    // Structure: [...] (just the orders array)
+    result = {
+      data: data,
+      total: data.length,
+      page: 1,
+      limit: data.length,
+    };
+    console.log("Using array structure:", result);
+  } else {
+    console.error("Unexpected API response structure:", data);
+    throw new Error(
+      `Unexpected API response structure: ${JSON.stringify(data)}`
+    );
+  }
+
+  console.log("Final parsed result:", result);
+
+  // Normalize the data to match the interface
+  const normalizedResult: MyOrdersResponse = {
+    ...result,
+    data: result.data.map((order) => ({
+      ...order,
+      status: order.status.toLowerCase() as OrderStatus,
+      payment_method: order.payment_method.toLowerCase() as
+        | "cash"
+        | "card"
+        | "upi"
+        | "wallet",
+      payment_status: order.payment_status?.toLowerCase() as
+        | "pending"
+        | "paid"
+        | "failed"
+        | "refunded"
+        | undefined,
+    })),
+  };
+
+  console.log("Normalized result:", normalizedResult);
+  return normalizedResult;
 }

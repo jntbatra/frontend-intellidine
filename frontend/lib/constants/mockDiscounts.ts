@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   Discount,
   DiscountStats,
@@ -234,26 +237,25 @@ export const generateDiscountStats = (discounts: Discount[]): DiscountStats => {
   const totalSavings = discounts.reduce((sum, d) => sum + d.total_savings, 0);
   const mostUsed =
     discounts.length > 0
-      ? discounts.reduce((max, d) => (d.usage_count > max.usage_count ? d : max))
+      ? discounts.reduce((max, d) =>
+          d.usage_count > max.usage_count ? d : max
+        )
       : null;
 
-  const typeBreakdown = discounts.reduce(
-    (acc, d) => {
-      const existing = acc.find((t) => t.type === d.type);
-      if (existing) {
-        existing.count++;
-        existing.savings += d.total_savings;
-      } else {
-        acc.push({
-          type: d.type,
-          count: 1,
-          savings: d.total_savings,
-        });
-      }
-      return acc;
-    },
-    [] as any[]
-  );
+  const typeBreakdown = discounts.reduce((acc, d) => {
+    const existing = acc.find((t) => t.type === d.type);
+    if (existing) {
+      existing.count++;
+      existing.savings += d.total_savings;
+    } else {
+      acc.push({
+        type: d.type,
+        count: 1,
+        savings: d.total_savings,
+      });
+    }
+    return acc;
+  }, [] as any[]);
 
   return {
     total_discounts: discounts.length,

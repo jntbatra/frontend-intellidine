@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useState } from "react";
 import { useDiscounts } from "@/hooks/admin/useDiscounts";
 import { DiscountTable } from "@/components/admin/tables/DiscountTable";
@@ -175,9 +177,7 @@ export default function DiscountsPage() {
           </div>
 
           <div className="flex-1">
-            <label className="text-sm font-medium text-slate-700">
-              Status
-            </label>
+            <label className="text-sm font-medium text-slate-700">Status</label>
             <Select
               value={selectedStatusFilter || "all"}
               onValueChange={(value) =>
@@ -223,7 +223,8 @@ export default function DiscountsPage() {
 
         <div className="flex items-center gap-2 text-sm">
           <span className="text-slate-600">
-            Found {filteredDiscounts.length} of {stats.total_discounts} discounts
+            Found {filteredDiscounts.length} of {stats.total_discounts}{" "}
+            discounts
           </span>
           {(selectedStatusFilter || selectedTypeFilter || searchQuery) && (
             <Button

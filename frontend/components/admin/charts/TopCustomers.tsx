@@ -1,6 +1,15 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface TopCustomersProps {
@@ -12,7 +21,9 @@ export function TopCustomers({ customers }: TopCustomersProps) {
     <Card>
       <CardHeader>
         <CardTitle>Top Customers</CardTitle>
-        <CardDescription>Most valuable customers by lifetime spend</CardDescription>
+        <CardDescription>
+          Most valuable customers by lifetime spend
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -44,7 +55,8 @@ export function TopCustomers({ customers }: TopCustomersProps) {
                   ₹{customer.total_spent.toLocaleString()}
                 </p>
                 <p className="text-xs text-slate-600 mt-1">
-                  Last: {new Date(customer.last_order_date).toLocaleDateString()}
+                  Last:{" "}
+                  {new Date(customer.last_order_date).toLocaleDateString()}
                 </p>
               </div>
             </div>

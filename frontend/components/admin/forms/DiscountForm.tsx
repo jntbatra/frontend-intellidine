@@ -1,5 +1,8 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState } from "react";
 import { Discount, DiscountType } from "@/lib/api/admin/discounts";
 import { Button } from "@/components/ui/button";
@@ -50,10 +53,7 @@ export function DiscountForm({
     const newErrors: Record<string, string> = {};
 
     if (!formData.code.trim()) newErrors.code = "Discount code is required";
-    if (
-      formData.code.trim().length < 3 ||
-      formData.code.trim().length > 20
-    ) {
+    if (formData.code.trim().length < 3 || formData.code.trim().length > 20) {
       newErrors.code = "Code must be 3-20 characters";
     }
     if (!formData.name.trim()) newErrors.name = "Discount name is required";
@@ -65,8 +65,7 @@ export function DiscountForm({
       newErrors.value = "Percentage must be between 1-100%";
     }
     if (!formData.valid_from) newErrors.valid_from = "Start date is required";
-    if (!formData.valid_until)
-      newErrors.valid_until = "End date is required";
+    if (!formData.valid_until) newErrors.valid_until = "End date is required";
     if (new Date(formData.valid_from) >= new Date(formData.valid_until)) {
       newErrors.valid_until = "End date must be after start date";
     }
@@ -109,7 +108,9 @@ export function DiscountForm({
               id="code"
               placeholder="e.g., WELCOME20"
               value={formData.code}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, code: e.target.value })
+              }
               className={errors.code ? "border-red-500" : ""}
               disabled={!!discount}
             />
@@ -120,13 +121,16 @@ export function DiscountForm({
 
           <div>
             <Label htmlFor="type">Discount Type *</Label>
-            <Select value={formData.type} onValueChange={(value) => {
-              setFormData({
-                ...formData,
-                type: value as DiscountType,
-                value: value === 'fixed' ? 100 : 10
-              });
-            }}>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => {
+                setFormData({
+                  ...formData,
+                  type: value as DiscountType,
+                  value: value === "fixed" ? 100 : 10,
+                });
+              }}
+            >
               <SelectTrigger id="type">
                 <SelectValue />
               </SelectTrigger>
@@ -147,7 +151,9 @@ export function DiscountForm({
               id="name"
               placeholder="e.g., Welcome Offer"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               className={errors.name ? "border-red-500" : ""}
             />
             {errors.name && (
@@ -161,7 +167,9 @@ export function DiscountForm({
               id="description"
               placeholder="Describe what this discount offers..."
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               rows={3}
             />
           </div>
@@ -174,7 +182,8 @@ export function DiscountForm({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="value">
-              {formData.type === "percentage" ? "Percentage (%)" : "Amount (₹)"} *
+              {formData.type === "percentage" ? "Percentage (%)" : "Amount (₹)"}{" "}
+              *
             </Label>
             <Input
               id="value"
@@ -224,7 +233,9 @@ export function DiscountForm({
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  usage_limit: e.target.value ? parseInt(e.target.value) : undefined,
+                  usage_limit: e.target.value
+                    ? parseInt(e.target.value)
+                    : undefined,
                 })
               }
               min="1"
@@ -303,9 +314,12 @@ export function DiscountForm({
 
           <div className="col-span-2">
             <Label htmlFor="status">Status *</Label>
-            <Select value={formData.status} onValueChange={(value) =>
-              setFormData({ ...formData, status: value as any })
-            }>
+            <Select
+              value={formData.status}
+              onValueChange={(value) =>
+                setFormData({ ...formData, status: value as any })
+              }
+            >
               <SelectTrigger id="status">
                 <SelectValue />
               </SelectTrigger>
@@ -324,7 +338,11 @@ export function DiscountForm({
         <Button variant="outline" type="button" disabled={isLoading}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading} className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold">
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold"
+        >
           {isLoading ? (
             <>
               <div className="animate-spin mr-2">⏳</div>

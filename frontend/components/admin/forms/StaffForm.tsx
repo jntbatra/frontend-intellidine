@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -203,18 +205,20 @@ export function StaffForm({
             <br />• At least 1 number
           </p>
           {errors.password && (
-            <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
+            <p className="text-sm text-red-600 mt-1">
+              {errors.password.message}
+            </p>
           )}
         </div>
       )}
 
       {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="w-full"
-      >
-        {isLoading ? "Saving..." : mode === "add" ? "Add Staff Member" : "Update Staff Member"}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading
+          ? "Saving..."
+          : mode === "add"
+          ? "Add Staff Member"
+          : "Update Staff Member"}
       </Button>
     </form>
   );

@@ -1,6 +1,15 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface PopularItemsProps {
@@ -29,7 +38,9 @@ export function PopularItems({ items }: PopularItemsProps) {
 
                 {/* Item Info */}
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-900">{item.item_name}</p>
+                  <p className="font-semibold text-slate-900">
+                    {item.item_name}
+                  </p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-slate-600">
                       {item.quantity_sold} sold
@@ -49,7 +60,12 @@ export function PopularItems({ items }: PopularItemsProps) {
                   ₹{item.revenue.toLocaleString()}
                 </p>
                 <p className="text-xs text-slate-600 mt-1">
-                  {((item.revenue / items.reduce((sum, i) => sum + i.revenue, 0)) * 100).toFixed(1)}% of total
+                  {(
+                    (item.revenue /
+                      items.reduce((sum, i) => sum + i.revenue, 0)) *
+                    100
+                  ).toFixed(1)}
+                  % of total
                 </p>
               </div>
             </div>

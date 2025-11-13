@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
@@ -70,7 +72,10 @@ export function OrderTable({ orders, onDelete, isLoading }: OrderTableProps) {
           <tbody>
             {orders.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-8 text-center text-slate-500">
+                <td
+                  colSpan={8}
+                  className="px-6 py-8 text-center text-slate-500"
+                >
                   No orders found
                 </td>
               </tr>
@@ -93,11 +98,10 @@ export function OrderTable({ orders, onDelete, isLoading }: OrderTableProps) {
                       <p className="text-xs text-slate-500">{order.id}</p>
                     </div>
                   </td>
+                  <td className="px-6 py-4 text-slate-700">{order.table_id}</td>
                   <td className="px-6 py-4 text-slate-700">
-                    {order.table_id}
-                  </td>
-                  <td className="px-6 py-4 text-slate-700">
-                    {order.items.length} item{order.items.length !== 1 ? "s" : ""}
+                    {order.items.length} item
+                    {order.items.length !== 1 ? "s" : ""}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span className="font-semibold text-slate-900">
@@ -132,7 +136,9 @@ export function OrderTable({ orders, onDelete, isLoading }: OrderTableProps) {
                         disabled={isLoading}
                         title="Delete Order"
                       >
-                        <span className="text-red-600 text-xs font-bold">✕</span>
+                        <span className="text-red-600 text-xs font-bold">
+                          ✕
+                        </span>
                       </Button>
                     </div>
                   </td>

@@ -1,8 +1,16 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Printer } from "lucide-react";
@@ -23,8 +31,22 @@ const ALL_MOCK_ORDERS = [
     customer_name: "Rajesh Kumar",
     order_number: 1001,
     items: [
-      { id: "item-1", name: "Butter Chicken", quantity: 2, price: 350, total: 700, special_instructions: "Less spicy" },
-      { id: "item-5", name: "Naan", quantity: 3, price: 50, total: 150, special_instructions: "" },
+      {
+        id: "item-1",
+        name: "Butter Chicken",
+        quantity: 2,
+        price: 350,
+        total: 700,
+        special_instructions: "Less spicy",
+      },
+      {
+        id: "item-5",
+        name: "Naan",
+        quantity: 3,
+        price: 50,
+        total: 150,
+        special_instructions: "",
+      },
     ],
     subtotal: 850,
     tax: 136,
@@ -43,9 +65,30 @@ const ALL_MOCK_ORDERS = [
     customer_name: "Priya Singh",
     order_number: 1002,
     items: [
-      { id: "item-2", name: "Paneer Tikka", quantity: 1, price: 280, total: 280, special_instructions: "No onions" },
-      { id: "item-3", name: "Dal Fry", quantity: 2, price: 180, total: 360, special_instructions: "" },
-      { id: "item-7", name: "Mango Lassi", quantity: 2, price: 120, total: 240, special_instructions: "Extra cold" },
+      {
+        id: "item-2",
+        name: "Paneer Tikka",
+        quantity: 1,
+        price: 280,
+        total: 280,
+        special_instructions: "No onions",
+      },
+      {
+        id: "item-3",
+        name: "Dal Fry",
+        quantity: 2,
+        price: 180,
+        total: 360,
+        special_instructions: "",
+      },
+      {
+        id: "item-7",
+        name: "Mango Lassi",
+        quantity: 2,
+        price: 120,
+        total: 240,
+        special_instructions: "Extra cold",
+      },
     ],
     subtotal: 880,
     tax: 141,
@@ -64,7 +107,14 @@ const ALL_MOCK_ORDERS = [
     customer_name: "Amit Patel",
     order_number: 1003,
     items: [
-      { id: "item-4", name: "Tandoori Chicken", quantity: 3, price: 320, total: 960, special_instructions: "Extra lemon" },
+      {
+        id: "item-4",
+        name: "Tandoori Chicken",
+        quantity: 3,
+        price: 320,
+        total: 960,
+        special_instructions: "Extra lemon",
+      },
     ],
     subtotal: 960,
     tax: 154,
@@ -83,8 +133,22 @@ const ALL_MOCK_ORDERS = [
     customer_name: "Deepak Sharma",
     order_number: 1004,
     items: [
-      { id: "item-8", name: "Chicken Biryani", quantity: 2, price: 280, total: 560, special_instructions: "More masala" },
-      { id: "item-6", name: "Gulab Jamun", quantity: 2, price: 100, total: 200, special_instructions: "" },
+      {
+        id: "item-8",
+        name: "Chicken Biryani",
+        quantity: 2,
+        price: 280,
+        total: 560,
+        special_instructions: "More masala",
+      },
+      {
+        id: "item-6",
+        name: "Gulab Jamun",
+        quantity: 2,
+        price: 100,
+        total: 200,
+        special_instructions: "",
+      },
     ],
     subtotal: 760,
     tax: 122,
@@ -103,9 +167,30 @@ const ALL_MOCK_ORDERS = [
     customer_name: "Neha Gupta",
     order_number: 1005,
     items: [
-      { id: "item-1", name: "Butter Chicken", quantity: 1, price: 350, total: 350, special_instructions: "" },
-      { id: "item-5", name: "Naan", quantity: 1, price: 50, total: 50, special_instructions: "Butter naan" },
-      { id: "item-7", name: "Mango Lassi", quantity: 1, price: 120, total: 120, special_instructions: "" },
+      {
+        id: "item-1",
+        name: "Butter Chicken",
+        quantity: 1,
+        price: 350,
+        total: 350,
+        special_instructions: "",
+      },
+      {
+        id: "item-5",
+        name: "Naan",
+        quantity: 1,
+        price: 50,
+        total: 50,
+        special_instructions: "Butter naan",
+      },
+      {
+        id: "item-7",
+        name: "Mango Lassi",
+        quantity: 1,
+        price: 120,
+        total: 120,
+        special_instructions: "",
+      },
     ],
     subtotal: 520,
     tax: 83,
@@ -124,8 +209,22 @@ const ALL_MOCK_ORDERS = [
     customer_name: "Vikram Kumar",
     order_number: 1006,
     items: [
-      { id: "item-3", name: "Dal Fry", quantity: 1, price: 180, total: 180, special_instructions: "" },
-      { id: "item-2", name: "Paneer Tikka", quantity: 2, price: 280, total: 560, special_instructions: "Extra crispy" },
+      {
+        id: "item-3",
+        name: "Dal Fry",
+        quantity: 1,
+        price: 180,
+        total: 180,
+        special_instructions: "",
+      },
+      {
+        id: "item-2",
+        name: "Paneer Tikka",
+        quantity: 2,
+        price: 280,
+        total: 560,
+        special_instructions: "Extra crispy",
+      },
     ],
     subtotal: 740,
     tax: 118,
@@ -144,7 +243,14 @@ const ALL_MOCK_ORDERS = [
     customer_name: "Zara Khan",
     order_number: 1007,
     items: [
-      { id: "item-8", name: "Chicken Biryani", quantity: 1, price: 280, total: 280, special_instructions: "Extra raita" },
+      {
+        id: "item-8",
+        name: "Chicken Biryani",
+        quantity: 1,
+        price: 280,
+        total: 280,
+        special_instructions: "Extra raita",
+      },
     ],
     subtotal: 280,
     tax: 45,
@@ -195,13 +301,13 @@ export default function OrderDetailPage() {
     const fetchOrderData = async () => {
       try {
         setIsLoading(true);
-        
+
         // Simulate API call
         await new Promise((resolve) => setTimeout(resolve, 300));
-        
+
         // Find order from mock data
         const foundOrder = ALL_MOCK_ORDERS.find((o) => o.id === orderId);
-        
+
         if (foundOrder) {
           setOrder(foundOrder);
         } else {
@@ -222,13 +328,13 @@ export default function OrderDetailPage() {
 
     try {
       setIsUpdatingStatus(true);
-      
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500));
-      
+
       // Update local state
       setOrder({ ...order, status: newStatus });
-      
+
       console.log("✅ Order status updated:", {
         orderId: order.id,
         newStatus,
@@ -273,7 +379,9 @@ export default function OrderDetailPage() {
   }
 
   const createdDate = new Date(order.created_at);
-  const completedDate = order.completed_at ? new Date(order.completed_at) : null;
+  const completedDate = order.completed_at
+    ? new Date(order.completed_at)
+    : null;
 
   return (
     <div className="space-y-8">
@@ -307,25 +415,35 @@ export default function OrderDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600">Customer</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Customer
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-lg font-semibold text-slate-900">{order.customer_name}</p>
+            <p className="text-lg font-semibold text-slate-900">
+              {order.customer_name}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600">Table</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Table
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-lg font-semibold text-slate-900">{order.table_id}</p>
+            <p className="text-lg font-semibold text-slate-900">
+              {order.table_id}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600">Payment Method</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Payment Method
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-lg font-semibold text-slate-900">
@@ -348,7 +466,11 @@ export default function OrderDetailPage() {
                 {STATUS_OPTIONS.find((s) => s.value === order.status)?.label}
               </Badge>
             </div>
-            <Select value={order.status} onValueChange={handleStatusChange} disabled={isUpdatingStatus}>
+            <Select
+              value={order.status}
+              onValueChange={handleStatusChange}
+              disabled={isUpdatingStatus}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -371,14 +493,16 @@ export default function OrderDetailPage() {
             <div>
               <p className="text-slate-600">Order Created</p>
               <p className="font-semibold text-slate-900">
-                {createdDate.toLocaleDateString()} {createdDate.toLocaleTimeString()}
+                {createdDate.toLocaleDateString()}{" "}
+                {createdDate.toLocaleTimeString()}
               </p>
             </div>
             {completedDate && (
               <div>
                 <p className="text-slate-600">Order Completed</p>
                 <p className="font-semibold text-slate-900">
-                  {completedDate.toLocaleDateString()} {completedDate.toLocaleTimeString()}
+                  {completedDate.toLocaleDateString()}{" "}
+                  {completedDate.toLocaleTimeString()}
                 </p>
               </div>
             )}
@@ -397,22 +521,42 @@ export default function OrderDetailPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-slate-50">
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">Item</th>
-                  <th className="px-4 py-3 text-center font-semibold text-slate-700">Qty</th>
-                  <th className="px-4 py-3 text-right font-semibold text-slate-700">Price</th>
-                  <th className="px-4 py-3 text-right font-semibold text-slate-700">Total</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">Instructions</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    Item
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-slate-700">
+                    Qty
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-700">
+                    Price
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-700">
+                    Total
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    Instructions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {order.items.map((item: any) => (
                   <tr key={item.id} className="border-b hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{item.name}</td>
-                    <td className="px-4 py-3 text-center text-slate-700">{item.quantity}</td>
-                    <td className="px-4 py-3 text-right text-slate-700">₹{item.price}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-900">₹{item.total}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900">
+                      {item.name}
+                    </td>
+                    <td className="px-4 py-3 text-center text-slate-700">
+                      {item.quantity}
+                    </td>
+                    <td className="px-4 py-3 text-right text-slate-700">
+                      ₹{item.price}
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                      ₹{item.total}
+                    </td>
                     <td className="px-4 py-3 text-slate-700 text-xs">
-                      {item.special_instructions ? item.special_instructions : "—"}
+                      {item.special_instructions
+                        ? item.special_instructions
+                        : "—"}
                     </td>
                   </tr>
                 ))}
@@ -424,15 +568,21 @@ export default function OrderDetailPage() {
           <div className="mt-6 space-y-2 ml-auto w-fit">
             <div className="flex gap-8">
               <span className="text-slate-600">Subtotal:</span>
-              <span className="font-semibold text-slate-900 w-24 text-right">₹{order.subtotal}</span>
+              <span className="font-semibold text-slate-900 w-24 text-right">
+                ₹{order.subtotal}
+              </span>
             </div>
             <div className="flex gap-8">
               <span className="text-slate-600">Tax (18%):</span>
-              <span className="font-semibold text-slate-900 w-24 text-right">₹{order.tax}</span>
+              <span className="font-semibold text-slate-900 w-24 text-right">
+                ₹{order.tax}
+              </span>
             </div>
             <div className="flex gap-8 border-t pt-2">
               <span className="font-semibold text-slate-900">Total:</span>
-              <span className="font-bold text-lg text-slate-900 w-24 text-right">₹{order.total_amount}</span>
+              <span className="font-bold text-lg text-slate-900 w-24 text-right">
+                ₹{order.total_amount}
+              </span>
             </div>
           </div>
         </CardContent>

@@ -1,6 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, X } from "lucide-react";
@@ -35,9 +43,13 @@ export function LowStockAlerts({
   onAcknowledge,
   onResolve,
 }: LowStockAlertsProps) {
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(
+    new Set()
+  );
 
-  const visibleAlerts = alerts.filter((alert) => !dismissedAlerts.has(alert.id));
+  const visibleAlerts = alerts.filter(
+    (alert) => !dismissedAlerts.has(alert.id)
+  );
 
   const handleDismiss = (alertId: string) => {
     const newDismissed = new Set(dismissedAlerts);
@@ -55,7 +67,9 @@ export function LowStockAlerts({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertCircle className="text-red-600" size={20} />
-            <CardTitle className="text-red-900">Active Inventory Alerts</CardTitle>
+            <CardTitle className="text-red-900">
+              Active Inventory Alerts
+            </CardTitle>
           </div>
           <Badge className="bg-red-600 text-white">
             {visibleAlerts.length} Alert{visibleAlerts.length !== 1 ? "s" : ""}
@@ -70,14 +84,17 @@ export function LowStockAlerts({
           {visibleAlerts.map((alert) => (
             <div
               key={alert.id}
-              className={`p-4 border rounded-lg flex items-start justify-between ${ALERT_TYPE_COLORS[alert.alert_type]}`}
+              className={`p-4 border rounded-lg flex items-start justify-between ${
+                ALERT_TYPE_COLORS[alert.alert_type]
+              }`}
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold">
-                    {alert.menu_item_name}
-                  </span>
-                  <Badge className={STATUS_BADGES[alert.status]} variant="outline">
+                  <span className="font-semibold">{alert.menu_item_name}</span>
+                  <Badge
+                    className={STATUS_BADGES[alert.status]}
+                    variant="outline"
+                  >
                     {alert.status.charAt(0).toUpperCase() +
                       alert.status.slice(1)}
                   </Badge>
@@ -86,8 +103,12 @@ export function LowStockAlerts({
                   {ALERT_TYPE_LABELS[alert.alert_type]}
                 </p>
                 <p className="text-sm">
-                  Current Stock: <span className="font-semibold">{alert.current_stock}</span> • 
-                  Minimum: <span className="font-semibold">{alert.minimum_threshold}</span>
+                  Current Stock:{" "}
+                  <span className="font-semibold">{alert.current_stock}</span> •
+                  Minimum:{" "}
+                  <span className="font-semibold">
+                    {alert.minimum_threshold}
+                  </span>
                 </p>
               </div>
               <div className="flex items-center gap-2 ml-4 shrink-0">

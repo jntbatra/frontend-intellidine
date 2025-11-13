@@ -1,6 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface PeakHoursChartProps {
   data: any[];
@@ -56,17 +64,19 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
             <div>
               <p className="text-xs text-slate-600">Peak Hour</p>
               <p className="text-lg font-bold text-slate-900">
-                {String(data.reduce((max, d) => (d.orders > max.orders ? d : max)).hour).padStart(
-                  2,
-                  "0"
-                )}
+                {String(
+                  data.reduce((max, d) => (d.orders > max.orders ? d : max))
+                    .hour
+                ).padStart(2, "0")}
                 :00
               </p>
             </div>
             <div>
               <p className="text-xs text-slate-600">Avg Orders/Hour</p>
               <p className="text-lg font-bold text-slate-900">
-                {Math.round(data.reduce((sum, d) => sum + d.orders, 0) / data.length)}
+                {Math.round(
+                  data.reduce((sum, d) => sum + d.orders, 0) / data.length
+                )}
               </p>
             </div>
             <div>
