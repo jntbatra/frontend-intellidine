@@ -24,7 +24,7 @@ export function useDiscounts() {
       const matchesSearch =
         searchQuery === "" ||
         discount.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        discount.name.toLowerCase().includes(searchQuery.toLowerCase());
+        (discount.name ?? "").toLowerCase().includes(searchQuery.toLowerCase());
 
       return matchesStatus && matchesType && matchesSearch;
     });
@@ -115,8 +115,8 @@ export function useDiscounts() {
           discount.id === id
             ? {
                 ...discount,
-                usage_count: discount.usage_count + 1,
-                total_savings: discount.total_savings + savingsAmount,
+                usage_count: (discount.usage_count ?? 0) + 1,
+                total_savings: (discount.total_savings ?? 0) + savingsAmount,
                 last_used_at: new Date().toISOString(),
               }
             : discount

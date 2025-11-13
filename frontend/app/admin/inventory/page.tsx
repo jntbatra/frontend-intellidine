@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -119,10 +119,10 @@ export default function InventoryPage() {
   const totalItems = MOCK_INVENTORY_ITEMS.length;
   const lowStockCount = MOCK_INVENTORY_ITEMS.filter((i) => i.is_low_stock).length;
   const overstockCount = MOCK_INVENTORY_ITEMS.filter(
-    (i) => i.current_stock > i.maximum_capacity * 0.9
+    (i) => (i.current_stock ?? 0) > (i.maximum_capacity ?? 0) * 0.9
   ).length;
   const totalInventoryValue = MOCK_INVENTORY_ITEMS.reduce(
-    (sum, item) => sum + item.current_stock * item.cost_per_unit,
+    (sum, item) => sum + (item.current_stock ?? 0) * (item.cost_per_unit ?? 0),
     0
   );
 

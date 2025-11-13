@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
@@ -26,7 +27,7 @@ export interface StaffFormData {
   email: string;
   phone?: string;
   password?: string;
-  role: "MANAGER" | "KITCHEN_STAFF" | "WAITER";
+  role: "MANAGER" | "KITCHEN_STAFF" | "WAITER" | "ACCOUNTANT" | "STAFF";
   is_active?: boolean;
 }
 

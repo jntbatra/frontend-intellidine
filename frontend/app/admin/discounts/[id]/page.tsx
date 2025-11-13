@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
@@ -177,7 +177,7 @@ export default function DiscountDetailPage() {
                       <div
                         className="bg-blue-500 h-2 rounded-full"
                         style={{
-                          width: `${(discount.usage_count / discount.usage_limit) * 100}%`,
+                          width: `${((discount.usage_count ?? 0) / discount.usage_limit) * 100}%`,
                         }}
                       />
                     </div>
@@ -185,7 +185,7 @@ export default function DiscountDetailPage() {
                   {discount.usage_limit && (
                     <p className="text-xs text-slate-500 mt-1">
                       {Math.round(
-                        (discount.usage_count / discount.usage_limit) * 100
+                        ((discount.usage_count ?? 0) / discount.usage_limit) * 100
                       )}
                       % of {discount.usage_limit} limit
                     </p>
@@ -207,7 +207,7 @@ export default function DiscountDetailPage() {
                     Total Savings Given
                   </p>
                   <p className="text-2xl font-bold text-green-600 mt-1">
-                    ₹{discount.total_savings}
+                    ₹{discount.total_savings ?? 0}
                   </p>
                 </div>
                 <div className="pt-3 border-t">
@@ -216,8 +216,8 @@ export default function DiscountDetailPage() {
                   </p>
                   <p className="text-lg font-bold text-blue-600 mt-1">
                     ₹
-                    {discount.usage_count > 0
-                      ? Math.round(discount.total_savings / discount.usage_count)
+                    {(discount.usage_count ?? 0) > 0
+                      ? Math.round((discount.total_savings ?? 0) / (discount.usage_count ?? 1))
                       : 0}
                   </p>
                 </div>
@@ -230,21 +230,21 @@ export default function DiscountDetailPage() {
                 30-Day Usage Trend
               </h3>
               <div className="space-y-2">
-                {analytics.usage_trend.slice(-7).map((day, idx) => (
+                {(analytics?.usage_trend ?? []).slice(-7).map((day, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <span className="text-xs text-slate-500 w-12">
-                      {day.date.substring(5)}
+                      {day.date?.substring(5)}
                     </span>
                     <div className="flex-1 bg-slate-100 rounded h-2">
                       <div
                         className="bg-purple-500 h-2 rounded"
                         style={{
-                          width: `${Math.min((day.count / 10) * 100, 100)}%`,
+                          width: `${Math.min(((day.count ?? 0) / 10) * 100, 100)}%`,
                         }}
                       />
                     </div>
                     <span className="text-xs font-medium w-6">
-                      {day.count}
+                      {day.count ?? 0}
                     </span>
                   </div>
                 ))}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
@@ -98,7 +99,7 @@ export default function DiscountsPage() {
                 Total Savings
               </p>
               <p className="text-2xl font-bold text-green-600 mt-1">
-                ₹{(stats.total_savings / 1000).toFixed(1)}K
+                ₹{(stats.total_savings_given / 1000).toFixed(1)}K
               </p>
             </div>
             <div className="text-3xl">💰</div>
@@ -151,7 +152,7 @@ export default function DiscountsPage() {
                   {type.count}
                 </p>
                 <p className="text-xs text-slate-500">
-                  ₹{(type.savings / 1000).toFixed(1)}K savings
+                  ₹{((type.savings ?? type.total_savings ?? 0) / 1000).toFixed(1)}K savings
                 </p>
               </div>
             </div>

@@ -303,7 +303,7 @@ export default function OrdersPage() {
               ))}
             </div>
           ) : (
-            <OrderTable orders={filteredOrders} isLoading={false} />
+            <OrderTable orders={filteredOrders} />
           )}
         </CardContent>
       </Card>

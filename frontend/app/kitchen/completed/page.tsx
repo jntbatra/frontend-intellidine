@@ -28,7 +28,7 @@ interface Order {
   tenant_id: string;
   items: OrderItem[];
   status: "pending" | "preparing" | "ready" | "served" | "completed" | "cancelled";
-  total_amount: number;
+  total: number;
   created_at: string;
   updated_at: string;
   special_instructions?: string;
@@ -62,7 +62,7 @@ export default function KitchenCompletedPage() {
         allOrders = response.data;
       }
 
-      const completedOrders = allOrders.filter((o) => o.status === "COMPLETED");
+      const completedOrders = allOrders.filter((o) => o.status === "completed");
       setOrders(completedOrders);
     } catch {
       setOrders([]);
@@ -108,7 +108,7 @@ export default function KitchenCompletedPage() {
                     <Badge variant="default">Completed</Badge>
                   </div>
                   <div className="text-sm text-gray-600 mb-2">
-                    Total: ${order.total_amount?.toFixed(2) || "0.00"}
+                    Total: ${order.total?.toFixed(2) || "0.00"}
                   </div>
                 </CardContent>
               </Card>

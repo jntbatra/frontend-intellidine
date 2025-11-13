@@ -96,14 +96,14 @@ export function ItemCutter({ orderId, items }: ItemCutterProps) {
               )}
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-gray-900 truncate">
-                  {item.name}
+                  {item.menu_item_name}
                 </div>
                 <div className="text-xs text-gray-600">
-                  Qty: {item.quantity} @ ₹{item.price}
+                  Qty: {item.quantity} @ ₹{item.price_at_order || item.unit_price || 0}
                 </div>
               </div>
               <span className="text-xs font-bold text-gray-700 shrink-0">
-                ₹{item.total}
+                ₹{item.subtotal}
               </span>
             </button>
           );

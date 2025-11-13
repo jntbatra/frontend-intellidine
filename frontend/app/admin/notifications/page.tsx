@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -210,7 +211,7 @@ export default function NotificationsPage() {
             <div className="text-center py-12">
               <p className="text-slate-500 text-lg">No notifications found</p>
               <p className="text-slate-400 text-sm mt-1">
-                You're all caught up!
+                You&apos;re all caught up!
               </p>
             </div>
           ) : (

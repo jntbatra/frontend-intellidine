@@ -1,13 +1,13 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getMenuItems,
+  getMenuWithCategories,
   getMenuItem,
-  getMenuCategories,
   createMenuItem,
   updateMenuItem,
-  updateMenuItemAvailability,
   deleteMenuItem,
   MenuItem,
   MenuCategory,
@@ -19,11 +19,11 @@ export function useMenuCategories(tenantId: string) {
   return useQuery({
     queryKey: ["menu-categories", tenantId],
     queryFn: async () => {
-      const response = await getMenuCategories(tenantId);
+      const response = await getMenuWithCategories(tenantId);
       if (!response.success) {
         throw new Error(response.message || "Failed to fetch categories");
       }
-      return response.data as MenuCategory[];
+      return ((response.data as any)?.categories as MenuCategory[]) || [];
     },
     enabled: !!tenantId,
   });
@@ -33,11 +33,14 @@ export function useMenuItems(tenantId: string, category?: string) {
   return useQuery({
     queryKey: ["menu-items", tenantId, category],
     queryFn: async () => {
-      const response = await getMenuItems(tenantId, category);
+      const response = await getMenuWithCategories(tenantId);
       if (!response.success) {
         throw new Error(response.message || "Failed to fetch menu items");
       }
-      return response.data as MenuItem[];
+      const allItems = (response.data as any)?.data || [];
+      return category
+        ? allItems.filter((item: MenuItem) => item.category === category)
+        : allItems;
     },
     enabled: !!tenantId,
   });
@@ -110,7 +113,7 @@ export function useUpdateMenuItemAvailability() {
       itemId: string;
       isAvailable: boolean;
       tenantId: string;
-    }) => updateMenuItemAvailability(itemId, isAvailable, tenantId),
+    }) => updateMenuItem(itemId, { is_available: isAvailable }, tenantId),
     onSuccess: (response, variables) => {
       if (response.success) {
         queryClient.invalidateQueries({

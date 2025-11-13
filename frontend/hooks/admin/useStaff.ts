@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getStaffList,
@@ -19,7 +21,7 @@ export function useStaffList(tenantId: string) {
       if (!response.success) {
         throw new Error(response.message || "Failed to fetch staff");
       }
-      return response.data as StaffMember[];
+      return ((response.data as any)?.staff as StaffMember[]) || [];
     },
     enabled: !!tenantId,
   });
