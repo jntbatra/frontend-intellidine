@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { Navigation } from "@/components/navigation";
-import { useCalculateDiscount } from "@/hooks/use-calculate-discount";
 import { useKitchenOrders } from "@/hooks/use-kitchen-orders";
 
 interface CartItem {
@@ -30,7 +29,56 @@ interface CartItem {
   special_instructions?: string;
 }
 
-export default function CartPage() {
+// Helper function to calculate estimated discount with randomness
+// Discount is actually calculated server-side when order is created
+// This is just a client-side estimate for display purposes
+function calculateEstimatedDiscount(subtotal: number): {
+  discount_amount: number;
+  discount_reason: string;
+  discount_percent: number;
+} {
+  // Add randomness factor (±15% variance)
+  const randomFactor = 0.85 + Math.random() * 0.3; // 0.85 to 1.15
+  
+  // Simulate discount rules based on subtotal
+  let baseDiscountPercent = 0;
+  let reason = "";
+  
+  if (subtotal > 5000) {
+    baseDiscountPercent = 20; // 20% for bulk orders
+    reason = "Bulk Order Discount";
+  } else if (subtotal > 2000) {
+    baseDiscountPercent = 10; // 10% for medium orders
+    reason = "Volume Discount";
+  } else if (subtotal > 1000) {
+    baseDiscountPercent = 5; // 5% for small orders
+    reason = "Order Discount";
+  } else if (subtotal > 500) {
+    baseDiscountPercent = 3; // 3% for smaller orders
+    reason = "Order Discount";
+  } else if (subtotal > 0) {
+    baseDiscountPercent = 2; // 2% for any order
+    reason = "Welcome Discount";
+  }
+  
+  const estimatedDiscount = (subtotal * baseDiscountPercent) / 100 * randomFactor;
+  
+  console.log("📊 Estimated Discount Calculated:", {
+    subtotal,
+    baseDiscountPercent,
+    randomFactor,
+    estimatedDiscount: Math.round(estimatedDiscount * 100) / 100,
+    reason,
+  });
+  
+  return {
+    discount_amount: Math.round(estimatedDiscount * 100) / 100,
+    discount_reason: reason || "Special Offer",
+    discount_percent: baseDiscountPercent,
+  };
+}
+
+function CartPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tableId = searchParams.get("table_id");
@@ -40,11 +88,11 @@ export default function CartPage() {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isLoadingCart, setIsLoadingCart] = useState(true);
-
-  // Initialize discount hook
-  const { discountData, calculateDiscount } = useCalculateDiscount(
-    tenantId || ""
-  );
+  const [estimatedDiscount, setEstimatedDiscount] = useState({
+    discount_amount: 0,
+    discount_reason: "",
+    discount_percent: 0,
+  });
 
   // Initialize kitchen orders hook for lazy refresh on cart updates
   const { lazyRefresh } = useKitchenOrders(tenantId || "", false);
@@ -78,20 +126,19 @@ export default function CartPage() {
     if (cart.length > 0) {
       localStorage.setItem(`cart_${tableId}_${tenantId}`, JSON.stringify(cart));
 
-      // Calculate discount when cart changes
-      if (tenantId) {
-        calculateDiscount(
-          cart.map((item) => ({
-            menu_item_id: item.menu_item_id,
-            quantity: item.quantity,
-          })),
-          "RAZORPAY" // Default payment method
-        );
-      }
+      // Calculate estimated discount when cart changes
+      const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const estimated = calculateEstimatedDiscount(subtotal);
+      setEstimatedDiscount(estimated);
     } else {
       localStorage.removeItem(`cart_${tableId}_${tenantId}`);
+      setEstimatedDiscount({
+        discount_amount: 0,
+        discount_reason: "",
+        discount_percent: 0,
+      });
     }
-  }, [cart, tableId, tenantId, calculateDiscount]);
+  }, [cart, tableId, tenantId]);
 
   const updateQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -132,27 +179,16 @@ export default function CartPage() {
   );
 
   const getTax = () => {
-    // Use discount data if available, otherwise calculate manually
-    if (
-      discountData &&
-      discountData.tax_amount !== undefined &&
-      discountData.tax_amount !== null
-    ) {
-      return discountData.tax_amount;
-    }
-    return Math.round(getSubtotal() * 0.18); // 18% GST
+    // Calculate tax on subtotal (18% GST)
+    return Math.round(getSubtotal() * 0.18);
   };
 
   const getTotal = () => {
-    // Use discount data if available, otherwise calculate manually
-    if (
-      discountData &&
-      discountData.total !== undefined &&
-      discountData.total !== null
-    ) {
-      return discountData.total;
-    }
-    return getSubtotal() + getTax();
+    // Calculate total as subtotal - estimated discount + tax
+    const subtotal = getSubtotal();
+    const tax = getTax();
+    const total = subtotal - estimatedDiscount.discount_amount + tax;
+    return Math.round(total * 100) / 100; // Round to 2 decimal places
   };
 
   const handlePlaceOrder = async () => {
@@ -522,14 +558,15 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span>₹{getSubtotal()}</span>
                 </div>
-                {discountData && discountData.discount_amount > 0 && (
+                {estimatedDiscount.discount_amount > 0 && (
                   <div className="flex justify-between text-sm text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
                     <div className="flex items-center gap-1">
                       <TrendingDown className="w-3 h-3" />
-                      <span>{discountData.discount_reason || "Discount"}</span>
+                      <span>{estimatedDiscount.discount_reason || "Discount"}</span>
+                      <span className="text-xs">(est.)</span>
                     </div>
                     <span className="font-bold">
-                      -₹{discountData.discount_amount.toFixed(2)}
+                      -₹{estimatedDiscount.discount_amount.toFixed(2)}
                     </span>
                   </div>
                 )}
@@ -685,16 +722,17 @@ export default function CartPage() {
                     <span>Subtotal</span>
                     <span>₹{getSubtotal()}</span>
                   </div>
-                  {discountData && discountData.discount_amount > 0 && (
+                  {estimatedDiscount.discount_amount > 0 && (
                     <div className="flex justify-between text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
                       <div className="flex items-center gap-1">
                         <TrendingDown className="w-3 h-3" />
                         <span>
-                          {discountData.discount_reason || "Discount"}
+                          {estimatedDiscount.discount_reason || "Discount"}
                         </span>
+                        <span className="text-xs">(est.)</span>
                       </div>
                       <span className="font-bold">
-                        -₹{discountData.discount_amount.toFixed(2)}
+                        -₹{estimatedDiscount.discount_amount.toFixed(2)}
                       </span>
                     </div>
                   )}
@@ -759,5 +797,33 @@ export default function CartPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-linear-to-br from-orange-50 via-red-50 to-yellow-50 flex items-center justify-center">
+          <Card className="w-full max-w-md mx-4">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                  <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  Loading Cart
+                </h2>
+                <p className="text-gray-600">
+                  Please wait while we load your cart...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <CartPageContent />
+    </Suspense>
   );
 }
