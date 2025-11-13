@@ -15,8 +15,9 @@ import {
   MenuItemFormData,
 } from "@/components/admin/forms/MenuItemForm";
 import { useEffect, useState } from "react";
+import { createMenuItem } from "@/lib/api/admin/menu";
 
-const DEFAULT_CATEGORIES = [
+const CATEGORIES = [
   "APPETIZERS",
   "MAIN_COURSE",
   "BREADS",
@@ -27,6 +28,7 @@ const DEFAULT_CATEGORIES = [
 export default function AddMenuItemPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [tenantId, setTenantId] = useState<string | null>("11111111-1111-1111-1111-111111111111");
 
   useEffect(() => {
     // Get tenant_id from localStorage
@@ -43,9 +45,11 @@ export default function AddMenuItemPage() {
       setIsLoading(true);
       
       // Get tenant_id from localStorage (set during staff login)
-      const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
+      // const tenantId = localStorage.getItem("current_tenant_id") || "11111111-1111-1111-1111-111111111111";
       
       // Prepare payload - remove allergens and tags
+      const tenantToUse = tenantId ?? "11111111-1111-1111-1111-111111111111";
+      
       const createPayload = {
         name: data.name,
         description: data.description,
@@ -55,7 +59,7 @@ export default function AddMenuItemPage() {
         preparation_time: Math.round(data.preparation_time_minutes), // Convert to integer
         image_url: data.image_url,
         available: true, // Default to available
-        tenant_id: tenantId, // Add tenant_id
+        tenant_id: tenantToUse, // Add tenant_id (guaranteed string)
       };
       
       // Call real API

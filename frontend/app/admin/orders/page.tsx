@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { OrderTable } from "@/components/admin/tables/OrderTable";
 import { getOrders, Order } from "@/lib/api/admin/orders";
@@ -321,7 +320,7 @@ export default function OrdersPage() {
               ))}
             </div>
           ) : (
-            <OrderTable orders={filteredOrders} isLoading={false} />
+            <OrderTable orders={filteredOrders} />
           )}
         </CardContent>
       </Card>

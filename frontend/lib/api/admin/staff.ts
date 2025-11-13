@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { apiClient } from "@/lib/api/client";
 import { apiClient, ApiResponse } from "@/lib/api/client";
 
 export type StaffRole = "MANAGER" | "KITCHEN_STAFF" | "WAITER" | "ACCOUNTANT" | "STAFF";
