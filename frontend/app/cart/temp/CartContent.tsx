@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,9 @@ export function CartContent() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isLoadingCart, setIsLoadingCart] = useState(true);
 
+  // Ref for discount calculation timeout
+  const discountTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Initialize discount hook
   const { discountData, calculateDiscount } = useCalculateDiscount(
     tenantId || ""
@@ -48,6 +51,15 @@ export function CartContent() {
 
   // Initialize kitchen orders hook for lazy refresh on cart updates
   const { lazyRefresh } = useKitchenOrders(tenantId || "", false);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (discountTimeoutRef.current) {
+        clearTimeout(discountTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Authentication check
   useEffect(() => {
@@ -78,18 +90,32 @@ export function CartContent() {
     if (cart.length > 0) {
       localStorage.setItem(`cart_${tableId}_${tenantId}`, JSON.stringify(cart));
 
-      // Calculate discount when cart changes
+      // Calculate discount with 3-second delay when cart changes
       if (tenantId) {
-        calculateDiscount(
-          cart.map((item) => ({
-            menu_item_id: item.menu_item_id,
-            quantity: item.quantity,
-          })),
-          "RAZORPAY" // Default payment method
-        );
+        // Clear previous timeout
+        if (discountTimeoutRef.current) {
+          clearTimeout(discountTimeoutRef.current);
+        }
+
+        // Set new timeout for 3 seconds
+        discountTimeoutRef.current = setTimeout(() => {
+          calculateDiscount(
+            cart.map((item) => ({
+              menu_item_id: item.menu_item_id,
+              quantity: item.quantity,
+            })),
+            "RAZORPAY" // Default payment method
+          );
+        }, 1700);
       }
     } else {
       localStorage.removeItem(`cart_${tableId}_${tenantId}`);
+
+      // Clear timeout if cart is empty
+      if (discountTimeoutRef.current) {
+        clearTimeout(discountTimeoutRef.current);
+        discountTimeoutRef.current = null;
+      }
     }
   }, [cart, tableId, tenantId, calculateDiscount]);
 
